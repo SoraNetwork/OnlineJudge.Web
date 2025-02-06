@@ -1,0 +1,41 @@
+name: Build
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4.2.0
+      - name: Build
+        run: | 
+              npm install
+              npm run build
+      - name: Upload dist to OSS
+        uses: fangbinwei/aliyun-oss-website-action@v1
+        with:
+            accessKeyId: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+            accessKeySecret: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+            bucket: ${{ secrets.ALIYUN_BUCKET_NAME }}
+            endpoint: oss-cn-shanghai.aliyuncs.com
+            folder: ./dist
+            skipSetting: True
+      - name: Replace to ALICDN
+        run: |
+          sed -i 's#\.\/#https\:\/\/xcubestudio.net.cubestructor.cc\/#g' ./dist/index.html
+      - name: Push
+        continue-on-error: true
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub-actions[bot]"
+          git add .
+          git commit -m "Studio-Official-Website/${{github.sha}} From CI"
+          git push origin main
+      - name: Call Deployment
+        run: curl -X POST "${{ secrets.CLOUDFLARE_WEBHOOK }}"
+      
+  
+  

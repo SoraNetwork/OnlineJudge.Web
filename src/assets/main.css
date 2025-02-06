@@ -1,0 +1,14 @@
+@import "./base.css";
+@import "tailwindcss";
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth; /* 浏览器自带的平滑滚动 */
+}
