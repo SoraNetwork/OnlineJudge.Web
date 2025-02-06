@@ -19,6 +19,7 @@ import {
   FluentDesignSystem,
   MenuListDefinition,
   TextInputDefinition,
+  DialogDefinition,
 } from "@fluentui/web-components";
 import AnnounceBar from "./components/AnnounceBar.vue";
 
@@ -35,6 +36,7 @@ DrawerBodyDefinition.define(FluentDesignSystem.registry);
 TabDefinition.define(FluentDesignSystem.registry);
 TablistDefinition.define(FluentDesignSystem.registry);
 TextInputDefinition.define(FluentDesignSystem.registry);
+DialogDefinition.define(FluentDesignSystem.registry);
 
 initThemeService(document.documentElement);
 </script>

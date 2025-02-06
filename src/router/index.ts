@@ -55,6 +55,11 @@ const router = createRouter({
       meta: { requiresGuest: true }
     },
     {
+      path: "/register",
+      name: "register",
+      component: () => import('../views/RegisterView.vue')
+    },
+    {
       path: "/:pathMatch(.*)*",
       redirect: "/not-found",
     },

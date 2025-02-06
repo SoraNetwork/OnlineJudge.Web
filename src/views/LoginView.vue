@@ -118,8 +118,8 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-neutral-100 dark:bg-neutral-900">
-    <div class="w-full max-w-md">
+  <div class="min-h-screen flex items-center justify-center bg-neutral-100 dark:bg-neutral-900 py-8">
+    <div class="w-full max-w-md px-4">
       <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg p-8">
         <div class="text-center mb-8">
           <h1 class="text-2xl font-bold">登录到 SOJ</h1>
@@ -188,7 +188,7 @@ const handleLogin = async () => {
           <!-- 其他选项 -->
           <div class="flex justify-between text-sm">
             <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">忘记密码？</a>
-            <a href="/register" class="text-blue-600 dark:text-blue-400 hover:underline">注册账号</a>
+            <a @click="router.push('/register')" class="text-blue-600 dark:text-blue-400 hover:underline">注册账号</a>
           </div>
         </form>
       </div>
