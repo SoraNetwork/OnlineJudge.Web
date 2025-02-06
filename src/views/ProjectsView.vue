@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { useRouter } from "vue-router";
-document.title = "Xcube Studio • 项目";
+document.title = "Sora Online Judge • 项目";
 
 const router = useRouter();
 router.push("/under-construction");

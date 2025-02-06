@@ -33,22 +33,25 @@ const handleMouseLeave = () => {
             :src="footerIcon"
             @mouseenter="handleMouseEnter"
             @mouseleave="handleMouseLeave"
+            @click="navigate('/')"
           />
           <p
 
             class="text-3xl select-none font-semibold text-neutral-700 dark:text-white hover:text-neutral-500 dark:hover:text-neutral-300 transition"
+            @click="navigate('/')"
           >
             Sora Online Judge
           </p>
         </div>
+
         <div class="flex gap-2">
           <IconButton
-            href="https://github.com/Xcube-Studio"
+            href="https://github.com/xingxing2008"
             Glyph="mdi:github"
             ToolTip="GitHub"
           />
           <IconButton
-            href="mailto:xcubestudio@axing6.cn"
+            href="mailto:xingxing520@axing6.cn"
             Glyph="fluent:mail-20-filled"
             ToolTip="邮箱"
           />

@@ -1,272 +1,230 @@
 <script setup lang="ts">
 import AnnounceBar from "@/components/AnnounceBar.vue";
-import AtSomeOne from "@/components/AtSomeOne.vue";
 import TokenItem from "@/components/TokenItem.vue";
 import { Icon } from "@iconify/vue";
-document.title = "Xcube Studio • 主页";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { isLoggedIn, userInfo, clearLoginState } from '@/stores/userStore.ts';
+document.title = "Sora Online Judge • 主页";
 
-const currentWindow: Window & typeof globalThis = window;
+// 模拟数据，实际使用时应该从API获取
+const recentContests = [
+  { id: 1, title: "每周算法练习赛 #1", startTime: "2024-02-01 14:00", status: "即将开始" },
+  { id: 2, title: "新手入门赛", startTime: "2024-01-28 19:00", status: "进行中" },
+  { id: 3, title: "寒假集训营", startTime: "2024-01-25 09:00", status: "已结束" },
+];
+
+const recommendedProblems = [
+  { id: "P1001", title: "A + B Problem", difficulty: "入门", acceptance: "95%" },
+  { id: "P1002", title: "过河卒", difficulty: "简单", acceptance: "45%" },
+  { id: "P1003", title: "铺地毯", difficulty: "中等", acceptance: "35%" },
+  { id: "P1004", title: "方格取数", difficulty: "困难", acceptance: "25%" },
+];
+
+const topUsers = [
+  { rank: 1, username: "tourist", rating: 3000, solved: 1500 },
+  { rank: 2, username: "Petr", rating: 2800, solved: 1200 },
+  { rank: 3, username: "jiangly", rating: 2750, solved: 1100 },
+];
+
+const router = useRouter();
+
+const handleLogin = () => {
+  // 处理登录逻辑
+  console.log("跳转到登录页面");
+  router.push("/login");
+};
+
+
+const handleRegister = () => {
+  // 处理注册逻辑
+  console.log("跳转到注册页面");
+  router.push("/register");
+};
+
+// 添加登出处理函数
+const handleLogout = () => {
+  clearLoginState();
+  router.push('/');
+};
 </script>
 
 <template>
   <div class="flex flex-col">
-    <div style="min-height: 87.5vh" class="flex flex-col mb-16">
-      <AnnounceBar>
-        建设中...
-      </AnnounceBar>
-      <div class="items-center flex flex-auto flex-col gap-8 p-8 sm:mt-8">
-        <div class="flex justify-center">
-          <a
-            class="bg-neutral-200/40 select-none text-blue-900 dark:text-blue-300 dark:bg-neutral-700/40 px-4 py-0.5 rounded-2xl font-semibold"
-          >
-            <p>欢迎</p>
-          </a>
-        </div>
+    <AnnounceBar>
+      建设中...
+    </AnnounceBar>
 
-        <div class="flex flex-col gap-8 grow">
-          <div class="hidden h-32 md:flex"></div>
-          <div class="flex flex-atuo flex-col gap-8 grow">
-            <div class="flex flex-col items-center">
-              <p class="font-bold text-2xl sm:text-4xl text-center">这里是</p>
-              <p
-                class="font-bold text-blue-900/90 dark:text-blue-300 text-3xl sm:text-5xl leading-12 sm:leading-16 text-center"
-              >
-                Xcube Studio 工作室
-              </p>
+    <div class="flex flex-col md:flex-row gap-6 p-8">
+      <!-- 左侧面板：个人信息和排行榜 -->
+      <div class="flex flex-col gap-6 md:w-1/3">
+        <!-- 个人信息/登录卡片 -->
+        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+          <div v-if="isLoggedIn" class="flex flex-col gap-4">
+            <!-- 已登录状态 -->
+            <div class="flex justify-between items-start">
+              <div class="flex flex-col gap-2">
+                <h2 class="text-2xl font-bold">{{ userInfo?.nickname || userInfo?.username }}</h2>
+                <div class="flex gap-4 text-neutral-600 dark:text-neutral-400">
+                  <span>Rating: {{ userInfo?.rating }}</span>
+                  <span>已解决: {{ userInfo?.solved }}</span>
+                </div>
+                <div class="text-neutral-600 dark:text-neutral-400">
+                  <span>排名: #{{ userInfo?.ranking }}</span>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <TokenItem 
+                  Token="查看资料" 
+                  Glyph="fluent:person-20-filled" 
+                  @click="router.push(`/profile/${userInfo?.username}`)" 
+                />
+                <TokenItem 
+                  Token="登出" 
+                  Glyph="fluent:sign-out-20-filled" 
+                  @click="handleLogout"
+                />
+              </div>
             </div>
-            <p
-              class="flex text-lg text-center text-neutral-700 dark:text-neutral-400 max-w-3xl"
-            >
-              我们是由一群热爱 Minecraft 、并从事 Minecraft
-              相关开发的开发者组成的开发团队。<br
-                class="hidden sm:flex"
-              />我们主要从事 C# .NET 相关开发，遵循 Fluent Design 设计理念。<br
-                class="hidden sm:flex"
-              />目前我们正着手 Fluent Launcher
-              启动器及其附属项目的相关维护和功能开发
-            </p>
-
-            <p
-              class="flex text-lg text-center justify-center text-neutral-700 dark:text-neutral-400 max-w-3xl"
-            >
-              我们正积极寻找着与我们志同道合的开发者加入我们 !
-            </p>
+            
+            <!-- 最近提交 -->
+            <div class="mt-2">
+              <h3 class="text-lg font-semibold mb-3">最近提交</h3>
+              <div class="flex flex-col gap-2">
+                <div v-for="submission in userInfo?.recentSubmissions" :key="submission.id"
+                  class="flex justify-between items-center py-2 border-b-1 border-neutral-200 dark:border-neutral-700 last:border-0">
+                  <div class="flex items-center gap-3">
+                    <span class="text-neutral-600 dark:text-neutral-400">{{ submission.id }}</span>
+                    <span class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">{{ submission.title }}</span>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <TokenItem 
+                      :Token="submission.status"
+                      :Glyph="submission.status === '通过' ? 'fluent:checkmark-circle-20-filled' : 'fluent:dismiss-circle-20-filled'"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 未登录状态 -->
+          <div v-else class="flex flex-col items-center gap-6 py-4">
+            <div class="flex flex-col items-center gap-2">
+              <h2 class="text-2xl font-bold">欢迎来到 SOJ</h2>
+              <p class="text-neutral-600 dark:text-neutral-400">登录以开始你的编程之旅</p>
+            </div>
+            <div class="flex gap-4">
+              <fluent-button appearance="accent" @click="handleLogin">
+                <Icon icon="fluent:person-20-filled" class="w-5 h-5 mr-2" />
+                登录
+              </fluent-button>
+              <fluent-button appearance="outline" @click="handleRegister">
+                <Icon icon="fluent:person-add-20-regular" class="w-5 h-5 mr-2" />
+                注册
+              </fluent-button>
+            </div>
           </div>
         </div>
 
-        <div class="flex flex-wrap justify-center gap-2">
-          <TokenItem Glyph="fluent:cube-20-regular" Token="Minecraft" />
-          <TokenItem Glyph="fluent:code-cs-16-regular" />
-          <TokenItem
-            Glyph="fluent:window-dev-tools-20-regular"
-            Token="Windows Develop"
-          />
-          <TokenItem Glyph="fluent:app-generic-20-filled" Token="Desktop" />
-          <TokenItem Glyph="fluent:slide-text-20-regular" Token="MIT" />
-          <TokenItem Glyph="fluent:code-20-regular" Token="Open Source" />
-          <TokenItem
-            Glyph="fluent:design-ideas-20-filled"
-            Token="Fluent Design"
-          />
+        <!-- 排行榜 -->
+        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">排行榜</h2>
+            <a class="text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
+          </div>
+          <div class="flex flex-col">
+            <div v-for="user in topUsers" :key="user.rank"
+              class="flex items-center justify-between py-3 border-b-1 border-neutral-200 dark:border-neutral-700 last:border-0">
+              <div class="flex items-center gap-3">
+                <span class="font-bold w-6">{{ user.rank }}</span>
+                <span class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">{{ user.username }}</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <span class="text-sm text-neutral-600 dark:text-neutral-400">Rating: {{ user.rating }}</span>
+                <span class="text-sm text-neutral-600 dark:text-neutral-400">已解决: {{ user.solved }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧面板：题目列表和比赛 -->
+      <div class="md:w-2/3 flex flex-col gap-6">
+        <!-- 题目列表 -->
+        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold">推荐题目</h2>
+            <div class="flex gap-2">
+              <fluent-button appearance="outline" class="px-4">
+                <Icon icon="fluent:filter-20-regular" class="w-5 h-5 mr-2" />
+                筛选
+              </fluent-button>
+              <fluent-button appearance="outline" class="px-4">
+                <Icon icon="fluent:search-20-regular" class="w-5 h-5 mr-2" />
+                搜索
+              </fluent-button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b-1 border-neutral-200 dark:border-neutral-700">
+                  <th class="py-3 text-left">题号</th>
+                  <th class="py-3 text-left">标题</th>
+                  <th class="py-3 text-left">难度</th>
+                  <th class="py-3 text-left">通过率</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="problem in recommendedProblems" :key="problem.id"
+                  class="border-b-1 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors">
+                  <td class="py-4">{{ problem.id }}</td>
+                  <td class="py-4 text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">{{ problem.title }}</td>
+                  <td class="py-4">
+                    <TokenItem :Token="problem.difficulty"
+                      :Glyph="problem.difficulty === '入门' ? 'fluent:leaf-one-20-filled' :
+                             problem.difficulty === '简单' ? 'fluent:star-20-filled' :
+                             problem.difficulty === '中等' ? 'fluent:stars-20-filled' : 'fluent:trophy-20-filled'"
+                    />
+                  </td>
+                  <td class="py-4">{{ problem.acceptance }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex justify-between items-center mt-4">
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">共 1000 题</span>
+            <div class="flex gap-2">
+              <fluent-button appearance="outline">上一页</fluent-button>
+              <fluent-button appearance="outline">下一页</fluent-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 最近比赛 -->
+        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">最近比赛</h2>
+            <a class="text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-for="contest in recentContests" :key="contest.id"
+              class="p-4 rounded-md border-1 border-neutral-200 dark:border-neutral-700 hover:border-blue-500 transition-colors">
+              <div class="flex justify-between items-start">
+                <h3 class="font-medium hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">{{ contest.title }}</h3>
+                <TokenItem :Token="contest.status" 
+                  :Glyph="contest.status === '即将开始' ? 'fluent:calendar-clock-20-filled' : 
+                         contest.status === '进行中' ? 'fluent:play-circle-20-filled' : 'fluent:checkmark-circle-20-filled'"
+                />
+              </div>
+              <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-2">{{ contest.startTime }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-    <div
-      class="flex flex-col p-8 sm:p-16 bg-neutral-200/30 dark:bg-neutral-800/30 gap-4"
-    >
-      <p class="flex text-center font-bold text-3xl sm:text-5xl sm:leading-16">
-        热门项目
-      </p>
-
-      <div
-        class="overflow-hidden flex flex-col sm:flex-row rounded-lg border-1 hover:shadow-lg border-neutral-300 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-800 gap-2 p-8 hover:border-blue-800 transition dark:hover:border-blue-200"
-      >
-        <div class="grow max-w-32"></div>
-        <div class="flex flex-col gap-2 sm:gap-4 md:pl-8 justify-center">
-          <a
-            href="https://apps.microsoft.com/detail/9P4NQQXQ942P?hl=zh-cn&gl=CN&ocid=pdpshare"
-            class="font-semibold text-xl sm:text-2xl hover:underline text-blue-900 dark:text-blue-300 select-none"
-          >
-            <p>Fluent Launcher 启动器</p>
-          </a>
-
-          <p
-            class="flex flex-auto md:flex-none text-md sm:text-lg text-neutral-700 dark:text-neutral-400 max-w-3xl"
-          >
-            基于 .NET 8 以及 WinUI3 技术开发的 Minecraft Java 版启动器 <br />
-            专为 Windows 11 设计的 Minecraft 启动器 <br />
-            提供简洁、流畅的视觉体验
-          </p>
-
-          <div class="flex flex-wrap justify-left gap-2 max-w-100 mt-4">
-            <TokenItem
-              Glyph="fluent:store-microsoft-20-filled"
-              Token="Microsoft Store"
-              href="https://apps.microsoft.com/detail/9P4NQQXQ942P?hl=zh-cn&gl=CN&ocid=pdpshare"
-            />
-            <TokenItem
-              href="https://github.com/Xcube-Studio/Natsurainko.FluentLauncher"
-              Glyph="mdi:github"
-              Token="GitHub"
-            />
-            <TokenItem
-              href="https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/stargazers"
-              Glyph="fluent:star-20-filled"
-              Token="300+"
-            />
-            <TokenItem
-              href="https://github.com/Xcube-Studio/Natsurainko.FluentLauncher/blob/main/LICENSE"
-              Glyph="fluent:slide-text-20-regular"
-              Token="MIT"
-            />
-            <TokenItem Glyph="fluent:code-cs-16-regular" />
-            <TokenItem
-              Glyph="fluent:app-generic-20-filled"
-              Token="Windows 11"
-            />
-            <TokenItem Glyph="fluent:code-20-regular" Token="Open Source" />
-            <TokenItem
-              Glyph="fluent:design-ideas-20-filled"
-              Token="Fluent Design"
-            />
-          </div>
-
-          <div
-            class="items-center hidden md:flex text-md text-neutral-700 dark:text-neutral-400 max-w-3xl mt-8"
-          >
-            目前主要由
-            <AtSomeOne
-              Name="natsurainko"
-              href="https://github.com/natsurainko"
-            />
-            和
-            <AtSomeOne Name="gaviny82" href="https://github.com/gaviny82" />
-            进行维护
-          </div>
-        </div>
-
-        <div
-          style="
-            margin-bottom: -32px;
-            margin-right: -32px;
-            background-position: left top;
-          "
-          class="hidden md:flex md:h-128 md:bg-no-repeat md:bg-cover grow ml-16 md:bg-[url('/imgs/launcher-about.png')] dark:md:bg-[url('/imgs/launcher-about-dark.png')]"
-        ></div>
-
-        <div class="grow max-w-32"></div>
-      </div>
-
-      <div
-        class="overflow-hidden flex flex-col sm:flex-row rounded-lg border-1 hover:shadow-lg border-neutral-300 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-800 gap-2 p-8 hover:border-blue-800 transition dark:hover:border-blue-200"
-      >
-        <div class="grow max-w-32"></div>
-
-        <div
-          style="margin-bottom: -32px; margin-left: -32px"
-          class="hidden md:flex md:h-128 md:bg-no-repeat md:bg-cover grow ml-16 md:bg-[url('/imgs/code-light.png')] dark:md:bg-[url('/imgs/code-dark.png')] bg-top"
-        ></div>
-
-        <div class="flex flex-col gap-2 sm:gap-4 md:pl-8 justify-center">
-          <a
-            href="https://github.com/Xcube-Studio/Natsurainko.FluentCore"
-            class="font-semibold text-xl sm:text-2xl hover:underline text-blue-900 dark:text-blue-300 select-none"
-          >
-            <p>Fluent Core 启动核心</p>
-          </a>
-
-          <p
-            class="flex flex-auto md:flex-none text-md sm:text-lg text-neutral-700 dark:text-neutral-400 max-w-3xl"
-          >
-            基于 .NET 8 的跨平台的模块化 Minecraft 启动核心<br />
-            提供简单的模块化调用，简化开发流程
-          </p>
-
-          <div class="flex flex-wrap justify-left gap-2 max-w-100 mt-4">
-            <TokenItem
-              href="https://github.com/Xcube-Studio/Natsurainko.FluentCore"
-              Glyph="mdi:github"
-              Token="GitHub"
-            />
-            <TokenItem
-              href="https://github.com/Xcube-Studio/Natsurainko.FluentCore/stargazers"
-              Glyph="fluent:star-20-filled"
-              Token="30+"
-            />
-            <TokenItem
-              href="https://github.com/Xcube-Studio/Natsurainko.FluentCore/blob/main/LICENSE"
-              Glyph="fluent:slide-text-20-regular"
-              Token="MIT"
-            />
-            <TokenItem Glyph="fluent:code-cs-16-regular" />
-            <TokenItem Glyph="fluent:app-generic-20-filled" Token=".NET 8" />
-            <TokenItem
-              Glyph="fluent:window-console-20-filled"
-              Token="AOT Compatible"
-            />
-            <TokenItem Glyph="fluent:code-20-regular" Token="Open Source" />
-          </div>
-
-          <div
-            class="items-center hidden md:flex text-md text-neutral-700 dark:text-neutral-400 max-w-3xl mt-8"
-          >
-            目前主要由
-            <AtSomeOne
-              Name="natsurainko"
-              href="https://github.com/natsurainko"
-            />
-            和
-            <AtSomeOne Name="gaviny82" href="https://github.com/gaviny82" />
-            进行维护
-          </div>
-        </div>
-
-        <div class="grow max-w-32"></div>
-      </div>
-    </div>
-
-    <div class="flex flex-col p-8 sm:p-16 gap-4 items-center">
-      <div
-        style="width: 85vw"
-        class="items-center flex flex-col rounded-lg border-1 hover:shadow-lg border-neutral-300 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-800 gap-4 p-8 hover:border-blue-800 transition dark:hover:border-blue-200"
-      >
-        <div class="flex">
-          <a
-            class="bg-neutral-200/40 select-none text-blue-900 dark:text-blue-300 dark:bg-neutral-700/40 px-4 py-0.5 rounded-2xl font-semibold"
-          >
-            <p>欢迎</p>
-          </a>
-        </div>
-
-        <p class="font-bold text-3xl sm:text-5xl sm:leading-16 text-center">
-          有好的开源创意？<br />加入我们，<br class="sm:hidden" />一起实现！
-        </p>
-
-        <p
-          class="flex text-lg text-center text-neutral-700 dark:text-neutral-400 max-w-3xl"
-        >
-          我们正积极寻找着与我们志同道合的开发者加入我们 !
-        </p>
-
-        <fluent-button
-          @click="
-            () =>
-              (currentWindow.location.href = 'https://qm.qq.com/q/8AKSiUUrn2')
-          "
-          appearance="primary"
-          class="select-none rounded-md px-4 py-1.5 shadow"
-        >
-          <div class="flex gap-2 items-center">
-            <Icon icon="fluent:chat-add-20-filled" class="w-6 h-6" />
-            <p class="text-lg">加入我们</p>
-          </div>
-        </fluent-button>
-      </div>
-    </div>
-
-    <div
-      class="h-screen bg-[url('/imgs/day.png')] dark:bg-[url('/imgs/night.png')] bg-cover bg-bottom bg-gradient-t from-current to-inherit"
-    ></div>
   </div>
 </template>

@@ -67,12 +67,15 @@ function navigate(path: string) {
           :src="headerIcon"
           @mouseenter="handleMouseEnter"
           @mouseleave="handleMouseLeave"
+          @click="navigate('/')"
         />
         <p
           class="text-xl select-none font-semibold text-neutral-700 dark:text-white hover:text-neutral-500 dark:hover:text-neutral-300 transition"
           v-text="header"
+          @click="navigate('/')"
         ></p>
       </div>
+
 
       <div
         style="height: 32px; width: 0.5px"

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { changeFavicon } from '@/utils/utils';
 
-document.title = "Fluent Launcher • 隐私政策";
+document.title = "Sora Online Judge • 隐私政策";
 </script>
+
 
 <template>
   <div class="flex p-8 sm:p-16 justify-center items-center">
@@ -14,10 +15,11 @@ document.title = "Fluent Launcher • 隐私政策";
         最后更新日期：2025 年 1 月 26 日
       </p>
       <p>
-        Fluent Launcher（以下简称 “启动器”）是一款由 Xcube Studio （以下简称
+        Sora Online Judge（以下简称 “SOJ”）是一款由 星可 XingSora （及其 Xcube Studio ） （以下简称
         “我们”）提供的产品。<br />
         本文件隐私政策解释了当您使用我们的服务或桌面应用程序时，我们如何以及为何收集、存储、使用和披露有关用户（“您”、“您的”）的信息。使用我们的服务，即表示您承认并同意本政策中描述的做法。
       </p>
+
 
       <p class="text-2xl font-semibold">我们收集的数据</p>
       <p class="text-xl font-semibold">诊断信息</p>
