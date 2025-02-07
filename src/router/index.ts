@@ -6,8 +6,12 @@ import NotFoundView from "@/views/error-views/NotFoundView.vue";
 import PrivacyView from "@/views/PrivacyView.vue";
 import UnderConstructionView from "@/views/error-views/UnderConstructionView.vue";
 import ProfileView from "@/views/ProfileView.vue";
-import LoginView from "@/views/LoginView.vue";
+import LoginView from "@/views/user-views/LoginView.vue";
 import { checkLoginState } from "@/stores/userStore";
+import RegisterView from "@/views/user-views/RegisterView.vue";
+import QuestionsView from "@/views/QuestionsView.vue";
+import GroupView from "@/views/GroupView.vue";
+import ContestsView from "@/views/ContestsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,9 +27,19 @@ const router = createRouter({
       component: ProjectsView,
     },
     {
-      path: "/news",
-      name: "news",
-      component: NewsView,
+      path: "/questions",
+      name: "questions",
+      component: QuestionsView,
+    },
+    {
+      path:"/group",
+      name:"group",
+      component: GroupView,
+    },
+    {
+      path:"/contests",
+      name:"contests",
+      component: ContestsView,
     },
     {
       path: "/privacy",
@@ -57,7 +71,7 @@ const router = createRouter({
     {
       path: "/register",
       name: "register",
-      component: () => import('../views/RegisterView.vue')
+      component: RegisterView,
     },
     {
       path: "/:pathMatch(.*)*",

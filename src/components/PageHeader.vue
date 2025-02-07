@@ -98,28 +98,41 @@ function navigate(path: string) {
           </RouterLink>
 
           <RouterLink
-            to="/projects"
+            to="/questions"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
             active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200"
           >
             <li
               class="flex justify-center items-center gap-1 px-2.5 rounded-sm select-none"
             >
-              <Icon icon="fluent:apps-20-filled" class="w-5 h-5" />
-              <p>项目</p>
+              <Icon icon="fluent:book-question-mark-20-regular" class="w-5 h-5" />
+              <p>题目</p>
             </li>
           </RouterLink>
 
           <RouterLink
-            to="/news"
+            to="/contests"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
             active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200"
           >
             <li
               class="flex justify-center items-center gap-1 px-2.5 rounded-sm select-none"
             >
-              <Icon icon="fluent:news-20-regular" class="w-5 h-5" />
-              <p>消息</p>
+              <Icon icon="fluent:align-stretch-vertical-20-regular" class="w-5 h-5" />
+              <p>竞赛</p>
+            </li>
+          </RouterLink>
+
+          <RouterLink
+            to="/group"
+            class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
+            active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200"
+          >
+            <li
+              class="flex justify-center items-center gap-1 px-2.5 rounded-sm select-none"
+            >
+              <Icon icon="fluent:people-24-regular" class="w-5 h-5" />
+              <p>团队</p>
             </li>
           </RouterLink>
         </ul>
@@ -261,25 +274,36 @@ function navigate(path: string) {
                   </li>
                 </fluent-tab>
                 <fluent-tab
-                  id="projects-table"
+                  id="questions-table"
                   class="h-8 py-5 aria-selected:bg-neutral-100 dark:aria-selected:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
                 >
                   <li
                     class="font-normal flex justify-center items-center gap-2 px-2.5 rounded-sm select-none"
                   >
-                    <Icon icon="fluent:apps-32-filled" class="w-5 h-5" />
-                    <p>项目</p>
+                    <Icon icon="fluent:book-question-mark-20-regular" class="w-5 h-5" />
+                    <p>题目</p>
                   </li>
                 </fluent-tab>
                 <fluent-tab
-                  id="news-table"
+                  id="contests-table"
                   class="h-8 py-5 aria-selected:bg-neutral-100 dark:aria-selected:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
                 >
                   <li
                     class="font-normal flex justify-center items-center gap-2 px-2.5 rounded-sm select-none"
                   >
-                    <Icon icon="fluent:news-28-regular" class="w-5 h-5" />
-                    <p>消息</p>
+                    <Icon icon="fluent:align-stretch-vertical-20-regular" class="w-5 h-5" />
+                    <p>竞赛</p>
+                  </li>
+                </fluent-tab>
+                <fluent-tab
+                  id="group-table"
+                  class="h-8 py-5 aria-selected:bg-neutral-100 dark:aria-selected:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+                >
+                  <li
+                    class="font-normal flex justify-center items-center gap-2 px-2.5 rounded-sm select-none"
+                  >
+                    <Icon icon="fluent:people-team-24-regular" class="w-5 h-5" />
+                    <p>团队</p>
                   </li>
                 </fluent-tab>
                 <fluent-tab id="not-found-table" class="hidden"> </fluent-tab>
