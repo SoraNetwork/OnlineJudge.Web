@@ -90,9 +90,9 @@ const props = defineProps({
     <div class="flex justify-between items-center mt-4">
       <span class="text-sm text-neutral-600 dark:text-neutral-400">共 1000 题</span>
       <div class="flex gap-2" >
-        <fluent-button :v-if="!props.link_flag" appearance="outline">上一页</fluent-button>
-        <fluent-button :v-if="!props.link_flag" appearance="outline">下一页</fluent-button>
-        <fluent-button :v-if="props.link_flag" appearance="outline" @click="router.push('/problems')">查看全部</fluent-button>
+        <fluent-button v-if="!props.link_flag" appearance="outline">上一页</fluent-button>
+        <fluent-button v-if="!props.link_flag" appearance="outline">下一页</fluent-button>
+        <fluent-button v-if="props.link_flag" appearance="outline" @click="router.push('/questions')">查看全部</fluent-button>
       </div>
     </div>
   </div>

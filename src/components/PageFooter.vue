@@ -65,8 +65,11 @@ const handleMouseLeave = () => {
           class="text-md select-none font-semibold text-neutral-500 dark:text-neutral-400"
         >
           Copyright © 星可 XingSora 2025
-          <br/> 浙ICP备2024113182号-1
+          
         </p>
+        <a class="text-md select-none font-semibold text-neutral-500 dark:text-neutral-400" href="http://beian.miit.gov.cn/">
+          浙ICP备2024113182号-1
+        </a>
 
       </div>
       <div class="flex md:flex-auto flex-col gap-2 items-start">
@@ -113,8 +116,8 @@ const handleMouseLeave = () => {
         </p>
         <div class="flex flex-col gap-2 items-start" style="margin-left: -12px">
           <HyperlinkButton
-            Content="Fluent Launcher 隐私政策"
-            :OnClick="() => navigate('/fluent-launcher/privacy')"
+            Content="隐私政策"
+            :OnClick="() => navigate('/privacy')"
           />
         </div>
       </div>

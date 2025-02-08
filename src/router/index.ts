@@ -5,7 +5,7 @@ import NewsView from "@/views/NewsView.vue";
 import NotFoundView from "@/views/error-views/NotFoundView.vue";
 import PrivacyView from "@/views/PrivacyView.vue";
 import UnderConstructionView from "@/views/error-views/UnderConstructionView.vue";
-import ProfileView from "@/views/ProfileView.vue";
+import ProfileView from "@/views/user-views/ProfileView.vue";
 import LoginView from "@/views/user-views/LoginView.vue";
 import { checkLoginState } from "@/stores/userStore";
 import RegisterView from "@/views/user-views/RegisterView.vue";
