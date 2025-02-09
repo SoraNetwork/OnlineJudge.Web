@@ -11,6 +11,11 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@bytemd/plugin-breaks": "^1.21.0",
+    "@bytemd/plugin-frontmatter": "^1.21.0",
+    "@bytemd/plugin-gfm": "^1.21.0",
+    "@bytemd/plugin-highlight": "^1.21.0",
+    "@bytemd/vue-next": "^1.21.0",
     "@fluentui/web-components": "^3.0.0-beta.77",
     "@iconify/vue": "^4.3.0",
     "@tailwindcss/vite": "^4.0.0",
@@ -19,6 +24,7 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@bytemd/plugin-math": "^1.21.0",
     "@iconify-json/fluent": "^1.2.12",
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^22.10.7",

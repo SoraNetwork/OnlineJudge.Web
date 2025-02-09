@@ -12,6 +12,7 @@ import RegisterView from "@/views/user-views/RegisterView.vue";
 import QuestionsView from "@/views/QuestionsView.vue";
 import GroupView from "@/views/GroupView.vue";
 import ContestsView from "@/views/ContestsView.vue";
+import ProblemView from "@/views/ProblemView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -72,6 +73,11 @@ const router = createRouter({
       path: "/register",
       name: "register",
       component: RegisterView,
+    },
+    {
+      path: '/questions/:id',
+      name: 'question',
+      component: ProblemView,
     },
     {
       path: "/:pathMatch(.*)*",
