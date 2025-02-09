@@ -6,6 +6,8 @@ import { Icon } from "@iconify/vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { isLoggedIn, userInfo, clearLoginState } from '@/stores/userStore.ts';
+import { login, register, getUserProfile, updateUserProfile } from '@/api/userApi.ts';
+
 document.title = "Sora Online Judge • 主页";
 
 // 模拟数据，实际使用时应该从API获取
