@@ -5,7 +5,7 @@ import highlight from '@bytemd/plugin-highlight';
 import breaks from '@bytemd/plugin-breaks';
 import frontmatter from '@bytemd/plugin-frontmatter';
 import math from '@bytemd/plugin-math';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineAsyncComponent } from 'vue';
 import { useRoute } from 'vue-router';
 import { Icon } from '@iconify/vue';
 import TokenItem from '@/components/TokenItem.vue';
@@ -67,6 +67,13 @@ const problem = ref({
 const isEditing = ref(false);
 const editedContent = ref('');
 
+const Editor = defineAsyncComponent(() =>
+  import('@bytemd/vue-next').then(mod => mod.Editor)
+);
+const Viewer = defineAsyncComponent(() =>
+  import('@bytemd/vue-next').then(mod => mod.Viewer)
+);
+
 onMounted(() => {
   // 这里应该从API获取题目数据
   editedContent.value = problem.value.content;
@@ -88,92 +95,64 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-6">
-    <div class="flex flex-col gap-6">
-      <!-- 标题栏 -->
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-2xl font-bold flex items-center gap-3">
-            {{ problem.id }}. {{ problem.title }}
-            <TokenItem :Token="problem.difficulty" Glyph="fluent:target-20-filled"/>
-          </h1>
-          <div class="mt-2 flex gap-4 text-sm text-neutral-600 dark:text-neutral-400">
-            <span>时间限制: {{ problem.timeLimit }}ms</span>
-            <span>内存限制: {{ problem.memoryLimit }}MB</span>
-            <span>通过率: {{ problem.acceptance }}</span>
+  <div class="min-h-screen bg-white dark:bg-neutral-900">
+    <div class="container mx-auto px-4 py-6">
+      <div class="flex flex-col gap-6">
+        <!-- 标题栏 -->
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-2xl font-bold flex items-center gap-3">
+              {{ problem.id }}. {{ problem.title }}
+              <TokenItem :Token="problem.difficulty" Glyph="fluent:target-20-filled"/>
+            </h1>
+            <div class="mt-2 flex gap-4 text-sm text-neutral-600 dark:text-neutral-400">
+              <span>时间限制: {{ problem.timeLimit }}ms</span>
+              <span>内存限制: {{ problem.memoryLimit }}MB</span>
+              <span>通过率: {{ problem.acceptance }}</span>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <fluent-button v-if="isEditing" appearance="accent" @click="handleSave">
+              <Icon icon="fluent:save-20-filled" class="w-5 h-5 mr-2"/>
+              保存
+            </fluent-button>
+            <fluent-button v-else appearance="outline" @click="handleEdit">
+              <Icon icon="fluent:edit-20-filled" class="w-5 h-5 mr-2"/>
+              编辑
+            </fluent-button>
+            <fluent-button appearance="accent" @click="handleSubmit">
+              <Icon icon="fluent:send-20-filled" class="w-5 h-5 mr-2"/>
+              提交
+            </fluent-button>
           </div>
         </div>
-        <div class="flex gap-3">
-          <fluent-button v-if="isEditing" appearance="accent" @click="handleSave">
-            <Icon icon="fluent:save-20-filled" class="w-5 h-5 mr-2"/>
-            保存
-          </fluent-button>
-          <fluent-button v-else appearance="outline" @click="handleEdit">
-            <Icon icon="fluent:edit-20-filled" class="w-5 h-5 mr-2"/>
-            编辑
-          </fluent-button>
-          <fluent-button appearance="accent" @click="handleSubmit">
-            <Icon icon="fluent:send-20-filled" class="w-5 h-5 mr-2"/>
-            提交
-          </fluent-button>
-        </div>
-      </div>
 
-      <!-- 标签 -->
-      <div class="flex gap-2">
-        <TokenItem v-for="tag in problem.tags" :key="tag" :Token="tag" Glyph="fluent:tag-20-filled"/>
-      </div>
-
-      <!-- 内容区域 -->
-      <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 overflow-hidden">
-        <div v-if="isEditing" class="min-h-[500px]">
-          <Editor
-            :value="editedContent"
-            :plugins="plugins"
-            @update:value="editedContent = $event"
-          />
+        <!-- 标签 -->
+        <div class="flex gap-2">
+          <TokenItem v-for="tag in problem.tags" :key="tag" :Token="tag" Glyph="fluent:tag-20-filled"/>
         </div>
-        <div v-else class="p-6">
-          <Viewer
-            :value="problem.content"
-            :plugins="plugins"
-          />
+
+        <!-- 内容区域 -->
+        <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 overflow-hidden">
+          <div v-if="isEditing" class="min-h-[500px] w-full">
+            <div class="dark:invert">
+              <Editor
+                :value="editedContent"
+                :plugins="plugins"
+                @update:value="editedContent = $event"
+                class="w-full"
+              />
+            </div>
+          </div>
+          <div v-else class="p-6 markdown-body">
+            <Viewer
+              :value="problem.content"
+              :plugins="plugins"
+            />
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<style>
-@import 'bytemd/dist/index.css';
-@import 'highlight.js/styles/github-dark.css';
-@import 'katex/dist/katex.css';
-
-.bytemd {
-  background-color: transparent;
-}
-
-.markdown-body {
-  background-color: transparent !important;
-}
-
-.dark .markdown-body {
-  color: #e5e5e5;
-}
-
-.dark .bytemd-toolbar {
-  background-color: #262626;
-  border-color: #404040;
-}
-
-.dark .bytemd-status {
-  background-color: #262626;
-  border-color: #404040;
-  color: #e5e5e5;
-}
-
-.dark .bytemd-editor {
-  background-color: #262626;
-  color: #e5e5e5;
-}
-</style>

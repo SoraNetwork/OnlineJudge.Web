@@ -73,7 +73,14 @@ const props = defineProps({
           <tr v-for="problem in props.recommendedProblems" :key="problem.id"
             class="border-b-1 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors">
             <td class="py-4">{{ problem.id }}</td>
-            <td class="py-4 text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">{{ problem.title }}</td>
+            <td class="py-4">
+              <span 
+              class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+              @click="router.push(`/questions/${problem.id}`)"
+              >
+              {{ problem.title }}
+              </span>
+            </td>
             <td class="py-4">
               <TokenItem :Token="problem.difficulty"
                 :Glyph="problem.difficulty === '入门' ? 'fluent:leaf-one-20-filled' :
