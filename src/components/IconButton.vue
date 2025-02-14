@@ -15,6 +15,11 @@ const props = defineProps({
     type: Function,
     required: false,
   },
+  Text: {
+    type: String,
+  
+    required: false,
+  },
 });
 
 const attrs = useAttrs();
@@ -43,6 +48,7 @@ const handleClick = (event: MouseEvent) => {
       <slot>
         <Icon :icon="Glyph" class="w-5 h-5" />
       </slot>
+      {{ Text }}
     </fluent-button>
     <fluent-tooltip
       v-if="ToolTip"

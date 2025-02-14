@@ -9,10 +9,11 @@ import ProfileView from "@/views/user-views/ProfileView.vue";
 import LoginView from "@/views/user-views/LoginView.vue";
 import { checkLoginState } from "@/stores/userStore";
 import RegisterView from "@/views/user-views/RegisterView.vue";
-import QuestionsView from "@/views/QuestionsView.vue";
+import QuestionsView from "@/views/Questions-view/QuestionsView.vue";
 import GroupView from "@/views/GroupView.vue";
 import ContestsView from "@/views/ContestsView.vue";
-import ProblemView from "@/views/ProblemView.vue";
+import ProblemView from "@/views/Questions-view/ProblemView.vue";
+import SubmitView from "@/views/Questions-view/SubmitView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -78,6 +79,11 @@ const router = createRouter({
       path: '/questions/:id',
       name: 'question',
       component: ProblemView,
+    },
+    {
+      path: '/questions/:id/submit',
+      name: 'submit',
+      component: SubmitView,
     },
     {
       path: "/:pathMatch(.*)*",

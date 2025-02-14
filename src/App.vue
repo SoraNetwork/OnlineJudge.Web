@@ -20,9 +20,14 @@ import {
   MenuListDefinition,
   TextInputDefinition,
   DialogDefinition,
+  FieldDefinition,
+  ProgressBarDefinition,
+  
 } from "@fluentui/web-components";
 import AnnounceBar from "./components/AnnounceBar.vue";
 
+ProgressBarDefinition.define(FluentDesignSystem.registry);
+FieldDefinition.define(FluentDesignSystem.registry);
 ButtonDefinition.define(FluentDesignSystem.registry);
 MenuDefinition.define(FluentDesignSystem.registry);
 MenuListDefinition.define(FluentDesignSystem.registry);
