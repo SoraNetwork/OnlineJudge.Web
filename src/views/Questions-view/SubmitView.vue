@@ -183,15 +183,15 @@ onMounted(() => {
 
         <!-- 提示信息 -->
         <div class="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800 border-l-4 border-accent">
-          <h3 class="text-lg font-medium mb-3 flex items-center gap-2">
+          <h3 class="text-lg font-medium mb-3 flex items-center gap-2 text-neutral-900 dark:text-white">
             <Icon icon="fluent:lightbulb-20-filled" class="w-5 h-5 text-accent"/>
             <span>提交提示</span>
           </h3>
           <div class="space-y-2">
             <div v-for="(tip, index) in tips" 
                  :key="index"
-                 class="flex items-start gap-3 text-sm text-neutral-600 dark:text-neutral-400">
-              <Icon :icon="tip.icon" class="w-5 h-5 mt-0.5 flex-shrink-0"/>
+                 class="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
+              <Icon :icon="tip.icon" class="w-5 h-5 mt-0.5 flex-shrink-0 text-neutral-600 dark:text-neutral-400"/>
               <span>{{ tip.text }}</span>
             </div>
           </div>
