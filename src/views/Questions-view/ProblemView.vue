@@ -14,6 +14,7 @@ import breaks from '@bytemd/plugin-breaks'
 import frontmatter from '@bytemd/plugin-frontmatter'
 import math from '@bytemd/plugin-math'
 import zhHans from 'bytemd/lib/locales/zh_Hans.json'
+import RecentSubmissions from '@/components/RecentSubmissions.vue'
 
 
 const route = useRoute();
@@ -78,9 +79,9 @@ const isEditing = ref(false);
 const editedContent = ref('');
 const isLoading = ref(true);
 
-// 修改提交记录数据结构，添加用户标识
-const recentSubmissions = ref({
-  personalSubmissions: [], // 个人提交记录为空
+// 修改提交记录数据结构
+const submissions = ref({
+  personalSubmissions: [], // 个人提交记录
   otherSubmissions: [     // 他人提交记录
     {
       id: '12345',
@@ -101,14 +102,14 @@ const recentSubmissions = ref({
       username: 'user2'
     }
   ]
-});
+})
 
 // 计算要显示的提交记录
 const displaySubmissions = computed(() => {
-  return recentSubmissions.value.personalSubmissions.length > 0 
-    ? recentSubmissions.value.personalSubmissions 
-    : recentSubmissions.value.otherSubmissions;
-});
+  return submissions.value.personalSubmissions.length > 0 
+    ? submissions.value.personalSubmissions 
+    : submissions.value.otherSubmissions
+})
 
 onMounted(async () => {
   try {
@@ -207,31 +208,11 @@ const handleEditorChange = (v) => {
 
           <!-- 右侧提交记录 - 仅在非编辑模式显示 -->
           <div v-if="!isEditing" class="lg:col-span-1">
-            <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-4">
-              <h2 class="text-lg font-semibold mb-4">
-                {{ recentSubmissions.personalSubmissions.length > 0 ? '我的提交' : '最近提交' }}
-              </h2>
-              <div class="flex flex-col gap-3">
-                <div v-for="submission in displaySubmissions" 
-                     :key="submission.id"
-                     class="p-3 bg-white dark:bg-neutral-700 rounded-lg">
-                  <div class="flex items-center gap-2">
-                    <TokenItem :Token="submission.status" 
-                             :Glyph="submission.status === 'Accepted' ? 'fluent:checkmark-20-filled' : 'fluent:dismiss-20-filled'"/>
-                    <span v-if="recentSubmissions.personalSubmissions.length === 0" 
-                          class="text-sm text-neutral-600 dark:text-neutral-400">
-                      {{ submission.username }}
-                    </span>
-                  </div>
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                    <div>{{ submission.submitTime }}</div>
-                    <div>语言：{{ submission.language }}</div>
-                    <div>耗时：{{ submission.time }}</div>
-                    <div>内存：{{ submission.memory }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <RecentSubmissions 
+              :submissions="displaySubmissions"
+              :show-username="submissions.personalSubmissions.length === 0"
+              :title="submissions.personalSubmissions.length > 0 ? '我的提交' : '最近提交'"
+            />
           </div>
         </div>
       </template>

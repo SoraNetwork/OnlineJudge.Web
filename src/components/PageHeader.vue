@@ -26,13 +26,30 @@ onMounted(() => {
   var baseMethod = tablist.activeidChanged;
   var path = location.pathname.substring(1);
 
-  if (path != "" && !router.hasRoute(path))
-    tablist.activeid = "not-found-table";
-  else tablist.activeid = path + "-table";
+  // 修改路由匹配逻辑
+  if (path != "") {
+    if (path.startsWith('questions')) {
+      tablist.activeid = "questions-table";
+    } else if (!router.hasRoute(path)) {
+      tablist.activeid = "not-found-table";
+    } else {
+      tablist.activeid = path + "-table";
+    }
+  } else {
+    tablist.activeid = "-table";
+  }
 
   tablist.activeidChanged = function (oldValue: string, newValue: string) {
     baseMethod.call(tablist, oldValue, newValue);
-    navigate("/" + newValue.replace("-table", ""));
+    // 修改导航逻辑
+    const route = newValue.replace("-table", "");
+    if (route === "questions") {
+      navigate("/questions");
+    } else if (route === "") {
+      navigate("/");
+    } else {
+      navigate("/" + route);
+    }
   };
 });
 

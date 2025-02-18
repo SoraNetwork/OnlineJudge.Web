@@ -14,6 +14,8 @@ import GroupView from "@/views/GroupView.vue";
 import ContestsView from "@/views/ContestsView.vue";
 import ProblemView from "@/views/Questions-view/ProblemView.vue";
 import SubmitView from "@/views/Questions-view/SubmitView.vue";
+import StatusView from "@/views/Questions-view/StatusView.vue";
+import StatusDetailView from "@/views/Questions-view/StatusDetailView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -79,6 +81,16 @@ const router = createRouter({
       path: '/questions/:id',
       name: 'question',
       component: ProblemView,
+    },
+    {
+      path: '/questions/status/:id',
+      name: 'status',
+      component: StatusView,
+    },
+    {
+      path: '/questions/status/detail/:id',
+      name: 'status-detail',
+      component: StatusDetailView,
     },
     {
       path: '/questions/:id/submit',
