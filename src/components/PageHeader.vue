@@ -8,6 +8,7 @@ import IconButton from "./IconButton.vue";
 import { changeFavicon } from "@/utils/utils";
 const router = useRouter();
 
+let QuestionsRouterLinkActive = false
 const headerIcon = ref<string>("/Noir.png");
 const header = ref<string>("Sora Online Judge");
 
@@ -116,6 +117,7 @@ function navigate(path: string) {
 
           <RouterLink
             to="/questions"
+            
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
             active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200"
           >
@@ -128,6 +130,7 @@ function navigate(path: string) {
           </RouterLink>
 
           <RouterLink
+            
             to="/contests"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
             active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200"

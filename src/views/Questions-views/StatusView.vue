@@ -139,7 +139,7 @@ const getLanguageIcon = (language: string): string => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-neutral-900">
+  <div class="min-h-screen bg-white dark:bg-neutral-900 h-full">
     <div class="container mx-auto px-4 py-6">
       <!-- 查询条件 -->
       <div class="mb-6">

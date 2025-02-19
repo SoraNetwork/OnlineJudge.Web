@@ -10,7 +10,8 @@ const router = useRouter();
 </script>
 
 <template>
-    <RecommendedProblems title="题目"/>
-    <RecentSubmissions :submissions="[]" title="最近提交"/>
+    <div class="w-full">
+        <RecommendedProblems title="题目" />
+        <RecentSubmissions :submissions="[]" title="最近提交" />
+    </div>
 </template>
-
