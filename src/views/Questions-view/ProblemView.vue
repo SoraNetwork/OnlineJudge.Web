@@ -138,6 +138,10 @@ const handleSubmit = () => {
 const handleEditorChange = (v) => {
   editedContent.value = v;
 };
+
+const handleBack = () => {
+  router.back();
+};
 </script>
 
 <template>
@@ -152,6 +156,9 @@ const handleEditorChange = (v) => {
         <div class="flex flex-col sm:flex-row justify-between gap-4 sm:items-center mb-6">
           <div>
             <h1 class="text-2xl font-bold flex items-center gap-3">
+              <fluent-button appearance="stealth" class="p-1 min-w-0" @click="handleBack">
+                <Icon icon="fluent:arrow-left-20-filled" class="w-5 h-5"/>
+              </fluent-button>
               {{ problem.id }}. {{ problem.title }}
               <TokenItem :Token="problem.difficulty" Glyph="fluent:target-20-filled"/>
             </h1>

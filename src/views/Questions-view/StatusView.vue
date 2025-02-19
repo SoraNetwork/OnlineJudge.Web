@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import TokenItem from '@/components/TokenItem.vue'
 
@@ -136,6 +136,10 @@ const getLanguageIcon = (language: string): string => {
   const option = languageOptions.value.find(opt => opt.label === language)
   return option?.icon || 'fluent:code-20-filled'
 }
+
+const getSelectedStatusOption = computed(() => {
+  return statusOptions.value.find(opt => opt.value === filters.value.status) || statusOptions.value[0]
+})
 </script>
 
 <template>
@@ -148,19 +152,20 @@ const getLanguageIcon = (language: string): string => {
           <fluent-menu>
             <fluent-button slot="trigger" appearance="outline">
               <div class="flex items-center gap-2">
-                <Icon :icon="getStatusIcon(filters.status)" class="w-5 h-5"/>
-                <span>{{ statusOptions.find(opt => opt.value === filters.status)?.label || '状态' }}</span>
+                <Icon :icon="getSelectedStatusOption.icon || 'fluent:question-circle-20-filled'" class="w-5 h-5"/>
+                <p>{{ getSelectedStatusOption.label }}</p>
               </div>
             </fluent-button>
-            <fluent-menu-list>
+            <fluent-menu-list class="max-h-[300px] overflow-y-auto w-max min-w-[200px] z-50">
               <fluent-menu-item
                 v-for="option in statusOptions"
                 :key="option.value"
                 @click="filters.status = option.value"
+                class="px-3 py-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
               >
                 <div class="flex items-center gap-2">
                   <Icon :icon="option.icon || 'fluent:question-circle-20-filled'" class="w-5 h-5"/>
-                  <span>{{ option.label }}</span>
+                  <p>{{ option.label }}</p>
                 </div>
               </fluent-menu-item>
             </fluent-menu-list>
@@ -171,18 +176,19 @@ const getLanguageIcon = (language: string): string => {
             <fluent-button slot="trigger" appearance="outline">
               <div class="flex items-center gap-2">
                 <Icon :icon="getLanguageIcon(filters.language)" class="w-5 h-5"/>
-                <span>{{ languageOptions.find(opt => opt.value === filters.language)?.label || '语言' }}</span>
+                <p>{{ languageOptions.find(opt => opt.value === filters.language)?.label || '语言' }}</p>
               </div>
             </fluent-button>
-            <fluent-menu-list>
+            <fluent-menu-list class="max-h-[300px] overflow-y-auto w-max min-w-[200px] z-50">
               <fluent-menu-item
                 v-for="option in languageOptions"
                 :key="option.value"
                 @click="filters.language = option.value"
+                class="px-3 py-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
               >
                 <div class="flex items-center gap-2">
                   <Icon :icon="option.icon" class="w-5 h-5"/>
-                  <span>{{ option.label }}</span>
+                  <p>{{ option.label }}</p>
                 </div>
               </fluent-menu-item>
             </fluent-menu-list>
@@ -192,6 +198,8 @@ const getLanguageIcon = (language: string): string => {
           <fluent-text-input
             v-model="filters.username"
             placeholder="用户名"
+            appearance="outline"
+            type="text"
           >
             <Icon icon="fluent:person-20-filled" slot="start" class="w-5 h-5"/>
           </fluent-text-input>
@@ -219,10 +227,10 @@ const getLanguageIcon = (language: string): string => {
           <thead class="bg-neutral-50 dark:bg-neutral-800">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                状态
+                题目
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                题目
+                状态
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                 用户
@@ -243,16 +251,17 @@ const getLanguageIcon = (language: string): string => {
           </thead>
           <tbody class="bg-white dark:bg-neutral-900 divide-y divide-neutral-200 dark:divide-neutral-700">
             <tr v-for="submission in submissions" :key="submission.id">
+              
+              <td class="px-6 py-4 whitespace-nowrap">
+                <a class="text-blue-600 dark:text-blue-400 hover:underline">
+                  {{ submission.problemId }}. {{ submission.problemTitle }}
+                </a>
+              </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <TokenItem 
                   :Token="submission.status"
                   :Glyph="getStatusIcon(submission.status)"
                 />
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <a class="text-blue-600 dark:text-blue-400 hover:underline">
-                  {{ submission.problemId }}. {{ submission.problemTitle }}
-                </a>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <a class="text-blue-600 dark:text-blue-400 hover:underline">
@@ -335,25 +344,14 @@ const getLanguageIcon = (language: string): string => {
 </template>
 
 <style scoped>
-/* 自定义样式 */
+/* 只保留必要的 Fluent UI 变量设置 */
 :deep(fluent-menu) {
   --background-color: var(--neutral-layer-1);
   --border-color: var(--neutral-stroke-rest);
 }
 
-:deep(fluent-menu-item) {
-  --background-color: var(--neutral-layer-1);
-  --hover-background-color: var(--neutral-layer-2);
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-:deep(fluent-menu-item[selected]) {
-  --background-color: var(--accent-fill-rest);
-  --foreground-color: var(--foreground-on-accent-rest);
-}
-
 :deep(fluent-text-input) {
   width: 100%;
+  --design-unit: 0;
 }
 </style>

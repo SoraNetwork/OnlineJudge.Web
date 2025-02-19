@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
 import TokenItem from './TokenItem.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 interface Submission {
   id: string
@@ -16,11 +19,13 @@ interface Props {
   submissions: Submission[]
   showUsername?: boolean
   title?: string
+  showViewAllButton?: boolean  // 新添加的属性
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showUsername: false,
-  title: '最近提交'
+  title: '最近提交',
+  showViewAllButton: false  // 默认不显示
 })
 
 const getStatusIcon = (status: string): string => {
@@ -38,7 +43,14 @@ const getStatusIcon = (status: string): string => {
 
 <template>
   <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-4">
-    <h2 class="text-lg font-semibold mb-4">{{ title }}</h2>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold">{{ title }}</h2>
+      <fluent-button v-if="showViewAllButton"
+              @click="$router.push('/questions/status/all')"
+              class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+        查看全部
+      </fluent-button>
+    </div>
     <div class="flex flex-col gap-3">
       <div v-for="submission in submissions" 
            :key="submission.id"

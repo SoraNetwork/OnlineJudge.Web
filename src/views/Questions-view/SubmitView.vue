@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, shallowRef } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import * as monaco from 'monaco-editor'
 import TokenItem from '@/components/TokenItem.vue'
 import IconButton  from "@/components/IconButton.vue";
 
 const route = useRoute();
+const router = useRouter();
 const problemId = route.params.id;
 
 const problem = ref({
@@ -79,6 +80,10 @@ const handleSubmit = () => {
   });
 };
 
+const handleBack = () => {
+  router.back();
+};
+
 const tips = [
   {
     icon: 'fluent:document-checkmark-20-filled',
@@ -125,6 +130,9 @@ onMounted(() => {
         <div class="flex justify-between items-center">
           <div>
             <h1 class="text-2xl font-bold flex items-center gap-3">
+              <fluent-button appearance="stealth" class="p-1 min-w-0" @click="handleBack">
+                <Icon icon="fluent:arrow-left-20-filled" class="w-5 h-5"/>
+              </fluent-button>
               {{ problem.id }}. {{ problem.title }}
               <TokenItem :Token="problem.difficulty" Glyph="fluent:target-20-filled"/>
             </h1>
