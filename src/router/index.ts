@@ -11,7 +11,7 @@ import { checkLoginState } from "@/stores/userStore";
 import RegisterView from "@/views/user-views/RegisterView.vue";
 import QuestionsView from "@/views/Questions-view/QuestionsView.vue";
 import GroupView from "@/views/GroupView.vue";
-import ContestsView from "@/views/ContestsView.vue";
+import ContestsView from "@/views/contests-views/ContestsView.vue";
 import ProblemView from "@/views/Questions-view/ProblemView.vue";
 import SubmitView from "@/views/Questions-view/SubmitView.vue";
 import StatusView from "@/views/Questions-view/StatusView.vue";
