@@ -143,7 +143,7 @@ const getSelectedStatusOption = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-neutral-900">
+  <div class="min-h-[95vh] bg-white dark:bg-neutral-900">
     <div class="container mx-auto px-4 py-6">
       <!-- 查询条件 -->
       <div class="mb-6">

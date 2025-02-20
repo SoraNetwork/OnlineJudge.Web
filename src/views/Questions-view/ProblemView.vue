@@ -145,7 +145,7 @@ const handleBack = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-neutral-900">
+  <div class="min-h-screen bg-white dark:bg-neutral-900 min-h-[95vh]">
     <div class="container mx-auto px-4 py-6">
       <div v-if="isLoading" class="flex justify-center min-h-[200px] w-full">
         <fluent-progress-bar indeterminate></fluent-progress-bar>
@@ -216,6 +216,7 @@ const handleBack = () => {
           <!-- 右侧提交记录 - 仅在非编辑模式显示 -->
           <div v-if="!isEditing" class="lg:col-span-1">
             <RecentSubmissions 
+              :show-view-all-button="true"
               :submissions="displaySubmissions"
               :show-username="submissions.personalSubmissions.length === 0"
               :title="submissions.personalSubmissions.length > 0 ? '我的提交' : '最近提交'"

@@ -5,7 +5,7 @@ document.title = "Xcube Studio • 建设中";
 
 <template>
   <div
-    class="flex p-8 sm:p-16 items-center justify-center gap-8"
+    class="flex p-8 sm:p-16 items-center justify-center gap-8 min-h-[95vh]"
     style="height: 70vh"
   >
     <Icon
