@@ -9,7 +9,7 @@ const router = useRouter();
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-6 dark:bg-gray-800 min-h-[95vh]">
+  <div class="container mx-auto px-4 py-6 dark:bg-gray-800">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- 左侧题目列表 -->
       <div class="lg:col-span-2">

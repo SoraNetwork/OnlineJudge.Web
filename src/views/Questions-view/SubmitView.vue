@@ -123,7 +123,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-[95vh] bg-white dark:bg-neutral-900">
+  <div class="bg-white dark:bg-neutral-900">
     <div class="container mx-auto px-4 py-6">
       <div class="flex flex-col gap-6">
         <!-- 标题栏 -->

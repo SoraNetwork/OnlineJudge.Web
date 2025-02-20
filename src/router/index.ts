@@ -16,6 +16,7 @@ import ProblemView from "@/views/Questions-view/ProblemView.vue";
 import SubmitView from "@/views/Questions-view/SubmitView.vue";
 import StatusView from "@/views/Questions-view/StatusView.vue";
 import StatusDetailView from "@/views/Questions-view/StatusDetailView.vue";
+import ContestView from "@/views/contests-views/ContestView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
       path:"/contests",
       name:"contests",
       component: ContestsView,
+    },
+    {
+      path:"/contests/:id",
+      name:'contest',
+      component: ContestView,
     },
     {
       path: "/privacy",

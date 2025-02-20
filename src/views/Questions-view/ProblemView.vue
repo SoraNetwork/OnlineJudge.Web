@@ -145,7 +145,7 @@ const handleBack = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-neutral-900 min-h-[95vh]">
+  <div class="bg-white dark:bg-neutral-900">
     <div class="container mx-auto px-4 py-6">
       <div v-if="isLoading" class="flex justify-center min-h-[200px] w-full">
         <fluent-progress-bar indeterminate></fluent-progress-bar>

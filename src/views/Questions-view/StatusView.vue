@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import TokenItem from '@/components/TokenItem.vue'
 
@@ -140,17 +140,32 @@ const getLanguageIcon = (language: string): string => {
 const getSelectedStatusOption = computed(() => {
   return statusOptions.value.find(opt => opt.value === filters.value.status) || statusOptions.value[0]
 })
+
+const isMobile = ref(window.innerWidth < 768)
+
+// 监听窗口大小变化
+onMounted(() => {
+  window.addEventListener('resize', () => {
+    isMobile.value = window.innerWidth < 768
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', () => {
+    isMobile.value = window.innerWidth < 768
+  })
+})
 </script>
 
 <template>
-  <div class="min-h-[95vh] bg-white dark:bg-neutral-900">
-    <div class="container mx-auto px-4 py-6">
+  <div class="bg-white dark:bg-neutral-900">
+    <div class="container mx-auto px-2 sm:px-4 py-6">
       <!-- 查询条件 -->
       <div class="mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <!-- 状态筛选 -->
-          <fluent-menu>
-            <fluent-button slot="trigger" appearance="outline">
+          <fluent-menu class="w-full">
+            <fluent-button slot="trigger" appearance="outline" class="w-full">
               <div class="flex items-center gap-2">
                 <Icon :icon="getSelectedStatusOption.icon || 'fluent:question-circle-20-filled'" class="w-5 h-5"/>
                 <p>{{ getSelectedStatusOption.label }}</p>
@@ -172,8 +187,8 @@ const getSelectedStatusOption = computed(() => {
           </fluent-menu>
 
           <!-- 语言筛选 -->
-          <fluent-menu>
-            <fluent-button slot="trigger" appearance="outline">
+          <fluent-menu class="w-full">
+            <fluent-button slot="trigger" appearance="outline" class="w-full">
               <div class="flex items-center gap-2">
                 <Icon :icon="getLanguageIcon(filters.language)" class="w-5 h-5"/>
                 <p>{{ languageOptions.find(opt => opt.value === filters.language)?.label || '语言' }}</p>
@@ -200,6 +215,7 @@ const getSelectedStatusOption = computed(() => {
             placeholder="用户名"
             appearance="outline"
             type="text"
+            class="w-full"
           >
             <Icon icon="fluent:person-20-filled" slot="start" class="w-5 h-5"/>
           </fluent-text-input>
@@ -208,6 +224,7 @@ const getSelectedStatusOption = computed(() => {
           <fluent-text-input
             v-model="filters.problemId"
             placeholder="题目ID"
+            class="w-full"
           >
             <Icon icon="fluent:document-20-filled" slot="start" class="w-5 h-5"/>
           </fluent-text-input>
@@ -222,7 +239,8 @@ const getSelectedStatusOption = computed(() => {
       </div>
 
       <!-- 评测记录列表 -->
-      <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden">
+      <div v-if="!isMobile" class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden">
+        <!-- 原桌面端表格布局 -->
         <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
           <thead class="bg-neutral-50 dark:bg-neutral-800">
             <tr>
@@ -290,8 +308,54 @@ const getSelectedStatusOption = computed(() => {
         </table>
       </div>
 
+      <!-- 移动端卡片布局 -->
+      <div v-else class="space-y-4">
+        <div v-for="submission in submissions" 
+             :key="submission.id"
+             class="bg-white dark:bg-neutral-800 p-4 rounded-lg border border-neutral-200 dark:border-neutral-700">
+          <div class="space-y-2">
+            <div class="flex justify-between items-start">
+              <a class="text-blue-600 dark:text-blue-400 hover:underline">
+                {{ submission.problemId }}. {{ submission.problemTitle }}
+              </a>
+              <TokenItem 
+                :Token="submission.status"
+                :Glyph="getStatusIcon(submission.status)"
+              />
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div class="flex items-center gap-1">
+                <Icon icon="fluent:person-20-filled" class="w-4 h-4"/>
+                <a class="text-blue-600 dark:text-blue-400">{{ submission.username }}</a>
+              </div>
+              
+              <div class="flex items-center gap-1">
+                <Icon :icon="getLanguageIcon(submission.language)" class="w-4 h-4"/>
+                <span>{{ submission.language }}</span>
+              </div>
+
+              <div class="text-neutral-500 dark:text-neutral-400">
+                {{ submission.time }} / {{ submission.memory }}
+              </div>
+
+              <div class="text-neutral-500 dark:text-neutral-400">
+                {{ submission.submitTime }}
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <fluent-button appearance="lightweight" @click="showCode(submission)">
+                <Icon icon="fluent:code-20-filled" class="w-5 h-5"/>
+                查看代码
+              </fluent-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 分页 -->
-      <div class="mt-4 flex justify-between items-center">
+      <div class="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="text-sm text-neutral-500 dark:text-neutral-400">
           共 {{ pagination.total }} 条记录
         </div>
@@ -319,8 +383,8 @@ const getSelectedStatusOption = computed(() => {
       <!-- 代码查看对话框 -->
       <fluent-dialog 
         :open="isCodeDialogOpen"
-        @close="isCodeDialogOpen= false"
-        class="w-3/4 h-3/4"
+        @close="isCodeDialogOpen = false"
+        :class="isMobile ? 'w-[95vw] h-[90vh]' : 'w-3/4 h-3/4'"
       >
         <div class="p-4" v-if="selectedSubmission">
           <h2 class="text-xl font-bold mb-4">提交详情</h2>
@@ -353,5 +417,12 @@ const getSelectedStatusOption = computed(() => {
 :deep(fluent-text-input) {
   width: 100%;
   --design-unit: 0;
+}
+
+@media (max-width: 768px) {
+  :deep(fluent-menu-list) {
+    width: calc(100vw - 2rem) !important;
+    max-width: none !important;
+  }
 }
 </style>

@@ -50,7 +50,7 @@ initThemeService(document.documentElement);
   <main class="flex flex-col h-screen">
     <div class="flex flex-col grow">
       <div class="bg-neutral-50 dark:bg-neutral-900 h-16"></div>
-      <RouterView class="bg-neutral-50 dark:bg-neutral-900" />
+      <RouterView class="min-w-full min-h-[95vh] bg-neutral-50 dark:bg-neutral-900" />
       <PageFooter />
     </div>
     <div class="fixed" style="width: 100%">
