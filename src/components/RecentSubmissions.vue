@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
-import TokenItem from './TokenItem.vue'
+import StatusTokenItem from '@/components/StatusTokenItem.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -27,18 +27,6 @@ const props = withDefaults(defineProps<Props>(), {
   title: '最近提交',
   showViewAllButton: false  // 默认不显示
 })
-
-const getStatusIcon = (status: string): string => {
-  const iconMap: Record<string, string> = {
-    'Accepted': 'fluent:checkmark-20-filled',
-    'Wrong Answer': 'fluent:dismiss-20-filled',
-    'Time Limit Exceeded': 'fluent:timer-20-filled',
-    'Memory Limit Exceeded': 'fluent:warning-20-filled',
-    'Runtime Error': 'fluent:error-circle-20-filled',
-    'Compile Error': 'fluent:code-20-filled'
-  }
-  return iconMap[status] || 'fluent:question-circle-20-filled'
-}
 </script>
 
 <template>
@@ -56,8 +44,7 @@ const getStatusIcon = (status: string): string => {
            :key="submission.id"
            class="p-3 bg-white dark:bg-neutral-700 rounded-lg">
         <div class="flex items-center gap-2">
-          <TokenItem :Token="submission.status" 
-                    :Glyph="getStatusIcon(submission.status)"/>
+          <StatusTokenItem :status="submission.status" />
           <span v-if="showUsername && submission.username" 
                 class="text-sm text-neutral-600 dark:text-neutral-400">
             {{ submission.username }}

@@ -84,7 +84,7 @@ const router = createRouter({
       component: RegisterView,
     },
     {
-      path: '/questions/:id',
+      path: '/questions/:id/:fromcontestid?',
       name: 'question',
       component: ProblemView,
     },

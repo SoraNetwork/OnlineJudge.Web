@@ -164,9 +164,10 @@ const handleLogout = () => {
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-for="contest in recentContests" :key="contest.id"
-              class="p-4 rounded-md border-1 border-neutral-200 dark:border-neutral-700 hover:border-blue-500 transition-colors">
+            @click="router.push(`contests/${contest.id}`)"
+            class="bg-neutral-50 dark:bg-neutral-800 rounded-lg border-1 border-neutral-200 dark:border-neutral-700 p-6 hover:border-blue-500 transition-colors cursor-pointer group">
               <div class="flex justify-between items-start">
-                <h3 class="font-medium hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">{{ contest.title }}</h3>
+                <h3 class="font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ contest.title }}</h3>
                 <TokenItem :Token="contest.status" 
                   :Glyph="contest.status === '即将开始' ? 'fluent:calendar-clock-20-filled' : 
                          contest.status === '进行中' ? 'fluent:play-circle-20-filled' : 'fluent:checkmark-circle-20-filled'"

@@ -86,7 +86,7 @@ const contestStatus = computed(() => {
 })
 
 const handleProblemClick = (problemId: string) => {
-  router.push(`/contest/${contestId}/problem/${problemId}`)
+  router.push(`/questions/${problemId}/${contestId}/`)
 }
 
 const getDifficultyColor = (difficulty: string) => {
@@ -155,8 +155,8 @@ const getDifficultyColor = (difficulty: string) => {
       </div>
 
       <!-- 标签页切换 -->
-      <fluent-tabs>
-        <fluent-tab
+      <fluent-tablist>
+        <fluent-tab 
           v-for="tab in [
             { id: 'problems', label: '题目', icon: 'fluent:document-20-filled' },
             { id: 'rankings', label: '排行榜', icon: 'fluent:trophy-20-filled' }
@@ -171,7 +171,7 @@ const getDifficultyColor = (difficulty: string) => {
             {{ tab.label }}
           </div>
         </fluent-tab>
-      </fluent-tabs>
+      </fluent-tablist>
 
       <!-- 题目列表 -->
       <div v-if="activeTab === 'problems'" class="mt-6">
@@ -291,16 +291,19 @@ const getDifficultyColor = (difficulty: string) => {
 </template>
 
 <style scoped>
-:deep(fluent-tabs) {
+:deep(fluent-tablist) {
   --background-color: var(--neutral-layer-1);
+  border-bottom: 1px solid var(--neutral-stroke-divider-rest);
 }
 
 :deep(fluent-tab) {
   --background-color: var(--neutral-layer-1);
   --hover-background-color: var(--neutral-layer-2);
+  padding: 8px 16px;
 }
 
 :deep(fluent-tab[selected]) {
   --background-color: var(--neutral-layer-2);
+  border-bottom: 2px solid var(--accent-fill-rest);
 }
 </style>

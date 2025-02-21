@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Icon } from '@iconify/vue'
-import TokenItem from '@/components/TokenItem.vue'
+import StatusTokenItem from '@/components/StatusTokenItem.vue'
 
 // 类型定义
 interface StatusOption {
@@ -125,11 +125,6 @@ const handlePageChange = (page: number): void => {
 const handleSearch = (): void => {
   // 实现搜索逻辑
   console.log('Search with filters:', filters.value)
-}
-
-const getStatusIcon = (status: string): string => {
-  const option = statusOptions.value.find(opt => opt.label === status)
-  return option?.icon || 'fluent:question-circle-20-filled'
 }
 
 const getLanguageIcon = (language: string): string => {
@@ -276,10 +271,7 @@ onUnmounted(() => {
                 </a>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <TokenItem 
-                  :Token="submission.status"
-                  :Glyph="getStatusIcon(submission.status)"
-                />
+                <StatusTokenItem :status="submission.status" />
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <a class="text-blue-600 dark:text-blue-400 hover:underline">
@@ -318,10 +310,7 @@ onUnmounted(() => {
               <a class="text-blue-600 dark:text-blue-400 hover:underline">
                 {{ submission.problemId }}. {{ submission.problemTitle }}
               </a>
-              <TokenItem 
-                :Token="submission.status"
-                :Glyph="getStatusIcon(submission.status)"
-              />
+              <StatusTokenItem :status="submission.status" />
             </div>
             
             <div class="grid grid-cols-2 gap-2 text-sm">
