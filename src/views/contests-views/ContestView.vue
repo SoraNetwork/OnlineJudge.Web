@@ -199,7 +199,7 @@ const getDifficultyColor = (difficulty: string) => {
             <tbody class="bg-white dark:bg-neutral-900 divide-y divide-neutral-200 dark:divide-neutral-700">
               <tr v-for="problem in problems" 
                   :key="problem.id"
-                  class="hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
+                  class="hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors duration-200"
                   @click="handleProblemClick(problem.id)">
                 <td class="px-6 py-4 whitespace-nowrap">
                   {{ problem.id }}
@@ -256,8 +256,8 @@ const getDifficultyColor = (difficulty: string) => {
                   <div class="flex items-center gap-2">
                     <Icon v-if="user.rank <= 3"
                           :icon="[
+                            'fluent:crown-20-filled',
                             'fluent:trophy-20-filled',
-                            'fluent:medal-20-filled',
                             'fluent:ribbon-20-filled'
                           ][user.rank - 1]"
                           :class="[

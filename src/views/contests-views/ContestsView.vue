@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { Icon } from "@iconify/vue";
+import router from '@/router';
 
 document.title = "Sora Online Judge • 比赛";
 
@@ -71,17 +72,6 @@ const contests = ref<Contest[]>([
     status: "即将开始",
     type: "练习赛",
     difficulty: "入门"
-  },
-  {
-    id: 6,
-    title: "企业专场竞赛",
-    description: "知名企业出题，获奖者有面试机会",
-    startTime: "2024-03-01 14:00",
-    duration: "4小时",
-    participants: 156,
-    status: "即将开始",
-    type: "私有赛",
-    difficulty: "中等"
   }
 ]);
 
@@ -259,9 +249,10 @@ const closeAllMenus = () => {
       <!-- 竞赛列表 -->
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
         <div v-for="contest in filteredContests" :key="contest.id"
-          class="bg-neutral-50 dark:bg-neutral-800 rounded-lg border-1 border-neutral-200 dark:border-neutral-700 p-6 hover:border-blue-500 transition-colors">
+          @click="router.push(`contests/${contest.id}`)"
+          class="bg-neutral-50 dark:bg-neutral-800 rounded-lg border-1 border-neutral-200 dark:border-neutral-700 p-6 hover:border-blue-500 transition-colors cursor-pointer group">
           <div class="flex justify-between items-start mb-4">
-            <h3 class="text-xl font-semibold hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
+            <h3 class="text-xl font-semibold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {{ contest.title }}
             </h3>
             <span :class="getStatusColor(contest.status)" class="text-sm font-medium">
