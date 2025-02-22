@@ -39,8 +39,32 @@ const problems = ref([
 
 // 排行榜
 const rankings = ref([
-  { rank: 1, username: 'user1', score: 400, solved: 4, penalty: 240 },
-  { rank: 2, username: 'user2', score: 300, solved: 3, penalty: 180 },
+  { 
+    rank: 1, 
+    username: 'user1', 
+    totalScore: 400, 
+    solved: 4, 
+    penalty: 240,
+    problemScores: [
+      { status: 'AC', score: 100, attempts: 1 },
+      { status: 'AC', score: 100, attempts: 1 },
+      { status: 'AC', score: 100, attempts: 2 },
+      { status: 'AC', score: 100, attempts: 1 }
+    ]
+  },
+  { 
+    rank: 2, 
+    username: 'user2', 
+    totalScore: 300, 
+    solved: 3, 
+    penalty: 180,
+    problemScores: [
+      { status: 'AC', score: 100, attempts: 1 },
+      { status: '-', score: 0, attempts: 0 },  // 未尝试
+      { status: 'WA', score: 0, attempts: 2 }, // 尝试但未通过
+      { status: 'AC', score: 100, attempts: 3 }
+    ]
+  },
   { rank: 3, username: 'user3', score: 200, solved: 2, penalty: 150 },
   { rank: 4, username: 'user4', score: 100, solved: 1, penalty: 60 }
 ])
@@ -97,6 +121,16 @@ const getDifficultyColor = (difficulty: string) => {
     '困难': 'text-red-600 dark:text-red-400'
   }
   return colors[difficulty as keyof typeof colors] || ''
+}
+
+// 添加获取分数显示样式的方法
+const getScoreStyle = (score: { status: string, score: number }) => {
+  if (score.status === 'AC') {
+    return 'text-green-600 dark:text-green-400'
+  } else if (score.status === 'WA') {
+    return 'text-red-600 dark:text-red-400'
+  }
+  return 'text-neutral-600 dark:text-neutral-400'
 }
 </script>
 
@@ -199,12 +233,12 @@ const getDifficultyColor = (difficulty: string) => {
             <tbody class="bg-white dark:bg-neutral-900 divide-y divide-neutral-200 dark:divide-neutral-700">
               <tr v-for="problem in problems" 
                   :key="problem.id"
-                  class="hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors duration-200"
+                  class="transition-colors cursor-pointer group dark:hover:bg-neutral-800 cursor-pointer transition-colors duration-200"
                   @click="handleProblemClick(problem.id)">
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors px-6 py-4 whitespace-nowrap">
                   {{ problem.id }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors px-6 py-4 whitespace-nowrap">
                   {{ problem.title }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -212,7 +246,7 @@ const getDifficultyColor = (difficulty: string) => {
                     {{ problem.difficulty }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-neutral-600 dark:text-neutral-400">
+                <td class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors px-6 py-4 whitespace-nowrap text-neutral-600 dark:text-neutral-400">
                   {{ problem.acceptance }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -238,13 +272,15 @@ const getDifficultyColor = (difficulty: string) => {
                 <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                   用户
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                  解题数
+                <th v-for="problem in problems" 
+                    :key="problem.id" 
+                    class="px-4 py-3 text-center text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                  {{ problem.id }}
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th class="px-6 py-3 text-center text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                   总分
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th class="px-6 py-3 text-center text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                   罚时
                 </th>
               </tr>
@@ -272,13 +308,22 @@ const getDifficultyColor = (difficulty: string) => {
                 <td class="px-6 py-4 whitespace-nowrap">
                   {{ user.username }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  {{ user.solved }}
+                <td v-for="(score, index) in user.problemScores" 
+                    :key="index"
+                    class="px-4 py-4 text-center whitespace-nowrap"
+                    :class="getScoreStyle(score)">
+                  <template v-if="score.status !== '-'">
+                    {{ score.score }}
+                    <span class="text-xs" v-if="score.attempts > 1">({{score.attempts}})</span>
+                  </template>
+                  <template v-else>
+                    <!-- 未尝试题目不显示任何内容 -->
+                  </template>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  {{ user.score }}
+                <td class="px-6 py-4 text-center whitespace-nowrap font-medium">
+                  {{ user.totalScore }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-neutral-600 dark:text-neutral-400">
+                <td class="px-6 py-4 text-center whitespace-nowrap text-neutral-600 dark:text-neutral-400">
                   {{ user.penalty }}分钟
                 </td>
               </tr>
