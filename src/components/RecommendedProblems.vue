@@ -47,7 +47,7 @@ const props = defineProps({
   <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-bold">{{props.title}}</h2>
-      <div class="flex gap-2">
+      <div v-if="!props.link_flag" class="flex gap-2">
         <fluent-button appearance="outline" class="px-4" @click="handleFilter">
           <Icon icon="fluent:filter-20-regular" class="w-5 h-5 mr-2" />
           筛选

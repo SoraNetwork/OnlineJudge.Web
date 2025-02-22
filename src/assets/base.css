@@ -117,7 +117,7 @@ body {
 
 /* 代码块样式 */
 .markdown-body pre {
-  background-color: #f6f8fa !important;
+  background-color: --fds(background-color) !important;
   border-radius: 6px !important;
   padding: 16px !important;
   margin: 0.8em 0 !important;

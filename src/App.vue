@@ -22,6 +22,9 @@ import {
   DialogDefinition,
   FieldDefinition,
   ProgressBarDefinition,
+  AvatarDefinition,
+  BadgeDefinition,
+  Badge,
   
 } from "@fluentui/web-components";
 import AnnounceBar from "./components/AnnounceBar.vue";
@@ -42,6 +45,8 @@ TabDefinition.define(FluentDesignSystem.registry);
 TablistDefinition.define(FluentDesignSystem.registry);
 TextInputDefinition.define(FluentDesignSystem.registry);
 DialogDefinition.define(FluentDesignSystem.registry);
+AvatarDefinition.define(FluentDesignSystem.registry);
+BadgeDefinition.define(FluentDesignSystem.registry);
 
 initThemeService(document.documentElement);
 </script>

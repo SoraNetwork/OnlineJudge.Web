@@ -65,8 +65,32 @@ const rankings = ref([
       { status: 'AC', score: 100, attempts: 3 }
     ]
   },
-  { rank: 3, username: 'user3', score: 200, solved: 2, penalty: 150 },
-  { rank: 4, username: 'user4', score: 100, solved: 1, penalty: 60 }
+  { 
+    rank: 3, 
+    username: 'user3', 
+    totalScore: 200, 
+    solved: 2, 
+    penalty: 150,
+    problemScores: [
+      { status: 'AC', score: 100, attempts: 2 },
+      { status: 'PARTIAL', score: 70, attempts: 1 }, // 部分正确的示例
+      { status: 'WA', score: 0, attempts: 3 },
+      { status: '-', score: 0, attempts: 0 }
+    ]
+  },
+  { 
+    rank: 4, 
+    username: 'user4', 
+    totalScore: 100, 
+    solved: 1, 
+    penalty: 60,
+    problemScores: [
+      { status: 'AC', score: 100, attempts: 1 },
+      { status: 'WA', score: 0, attempts: 1 },
+      { status: '-', score: 0, attempts: 0 },
+      { status: '-', score: 0, attempts: 0 }
+    ]
+  }
 ])
 
 // 当前选中的标签页
@@ -110,6 +134,7 @@ const contestStatus = computed(() => {
 })
 
 const handleProblemClick = (problemId: string) => {
+  window.scrollTo(0,0)
   router.push(`/questions/${problemId}/${contestId}/`)
 }
 
@@ -127,7 +152,10 @@ const getDifficultyColor = (difficulty: string) => {
 const getScoreStyle = (score: { status: string, score: number }) => {
   if (score.status === 'AC') {
     return 'text-green-600 dark:text-green-400'
-  } else if (score.status === 'WA') {
+  }else if (score.status === 'PARTIAL') {
+    return 'text-yellow-600 dark:text-yellow-400'
+  } 
+  else if (score.status === 'WA') {
     return 'text-red-600 dark:text-red-400'
   }
   return 'text-neutral-600 dark:text-neutral-400'

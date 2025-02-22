@@ -8,6 +8,7 @@ export interface UserInfo {
   rating: number;
   solved: number;
   ranking: number;
+  avatar?: string;
   recentSubmissions?: {
     id: string;
     title: string;

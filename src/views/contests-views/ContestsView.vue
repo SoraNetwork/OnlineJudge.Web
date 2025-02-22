@@ -149,6 +149,11 @@ const closeAllMenus = () => {
   isTypeMenuOpen.value = false;
   isSortMenuOpen.value = false;
 };
+
+function navigate(path: string) {
+  window.scrollTo(0, 0);
+  router.push(path);
+}
 </script>
 
 <template>
@@ -249,7 +254,7 @@ const closeAllMenus = () => {
       <!-- 竞赛列表 -->
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
         <div v-for="contest in filteredContests" :key="contest.id"
-          @click="router.push(`contests/${contest.id}`)"
+          @click="navigate(`contests/${contest.id}`)"
           class="bg-neutral-50 dark:bg-neutral-800 rounded-lg border-1 border-neutral-200 dark:border-neutral-700 p-6 hover:border-blue-500 transition-colors cursor-pointer group">
           <div class="flex justify-between items-start mb-4">
             <h3 class="text-xl font-semibold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">

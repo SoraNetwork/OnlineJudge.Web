@@ -4,7 +4,7 @@ import TokenItem from "@/components/TokenItem.vue";
 import RecommendedProblems from "@/components/RecommendedProblems.vue";
 import { Icon } from "@iconify/vue";
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, type RouteLocationAsPathGeneric, type RouteLocationAsRelativeGeneric } from "vue-router";
 import { isLoggedIn, userInfo, clearLoginState } from '@/stores/userStore.ts';
 import { login, register, getUserProfile, updateUserProfile } from '@/api/userApi.ts';
 
@@ -25,9 +25,9 @@ const recommendedProblems = [
 ];
 
 const topUsers = [
-  { rank: 1, username: "tourist", rating: 3000, solved: 1500 },
-  { rank: 2, username: "Petr", rating: 2800, solved: 1200 },
-  { rank: 3, username: "jiangly", rating: 2750, solved: 1100 },
+  { avatar:"", rank: 1, username: "tourist", rating: 3000, solved: 1500 },
+  { avatar:"", rank: 2, username: "Petr", rating: 2800, solved: 1200 },
+  { avatar:"", rank: 3, username: "jiangly", rating: 2750, solved: 1100 },
 ];
 
 const router = useRouter();
@@ -35,20 +35,30 @@ const router = useRouter();
 const handleLogin = () => {
   // 处理登录逻辑
   console.log("跳转到登录页面");
-  router.push("/login");
+  navigate('/login');
 };
 
 
 const handleRegister = () => {
   // 处理注册逻辑
   console.log("跳转到注册页面");
-  router.push("/register");
+  navigate('/register');
 };
 
 // 添加登出处理函数
 const handleLogout = () => {
   clearLoginState();
-  router.push('/');
+  navigate('/');
+};
+
+const navigate = (path: string)=>{
+  window.scrollTo(0, 0);
+  router.push(path)
+}
+
+// 获取用户名首字母的函数
+const getInitials = (name: string) => {
+  return name ? name.charAt(0).toUpperCase() : '?';
 };
 </script>
 
@@ -66,23 +76,42 @@ const handleLogout = () => {
           <div v-if="isLoggedIn" class="flex flex-col gap-4">
             <!-- 已登录状态 -->
             <div class="flex justify-between items-start">
-              <div class="flex flex-col gap-2">
-                <h2 class="text-2xl font-bold">{{ userInfo?.nickname || userInfo?.username }}</h2>
-                <div class="flex gap-4 text-neutral-600 dark:text-neutral-400">
-                  <span>Rating: {{ userInfo?.rating }}</span>
-                  <span>已解决: {{ userInfo?.solved }}</span>
+              <div class="flex items-center gap-4">
+                <!-- 添加头像/徽章 -->
+                <div v-if="userInfo?.avatar" class="w-12 h-12">
+                  <fluent-avatar
+                    :image="userInfo.avatar"
+                    :title="userInfo.nickname || userInfo.username"
+                  >
+                    <span slot="badge">{{ userInfo.nickname || userInfo.username }}</span>
+                  </fluent-avatar>
                 </div>
-                <div class="text-neutral-600 dark:text-neutral-400">
-                  <span>排名: #{{ userInfo?.ranking }}</span>
+                <div v-else class="w-12 h-12">
+                  <fluent-badge appearance="accent" class="w-full h-full flex items-center justify-center text-xl font-medium">
+                    {{ getInitials(userInfo?.nickname || userInfo?.username || '') }}
+                    <span class="ml-1 text-sm">{{ userInfo?.nickname || userInfo?.username }}</span>
+                  </fluent-badge>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <h2 class="text-2xl font-bold">{{ userInfo?.nickname || userInfo?.username }}</h2>
+                  <div class="flex gap-4 text-neutral-600 dark:text-neutral-400">
+                    <span>Rating: {{ userInfo?.rating }}</span>
+                    <span>已解决: {{ userInfo?.solved }}</span>
+                  </div>
+                  <div class="text-neutral-600 dark:text-neutral-400">
+                    <span>排名: #{{ userInfo?.ranking }}</span>
+                  </div>
                 </div>
               </div>
               <div class="flex gap-2">
-                <TokenItem 
+                <TokenItem
+                  class="cursor-pointer" 
                   Token="查看资料" 
                   Glyph="fluent:person-20-filled" 
                   @click="router.push(`/profile/${userInfo?.username}`)" 
                 />
                 <TokenItem 
+                  class="cursor-pointer"
                   Token="登出" 
                   Glyph="fluent:sign-out-20-filled" 
                   @click="handleLogout"
@@ -134,13 +163,30 @@ const handleLogout = () => {
         <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">排行榜</h2>
-            <a class="text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
+            <a class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
           </div>
           <div class="flex flex-col">
             <div v-for="user in topUsers" :key="user.rank"
               class="flex items-center justify-between py-3 border-b-1 border-neutral-200 dark:border-neutral-700 last:border-0">
               <div class="flex items-center gap-3">
                 <span class="font-bold w-6">{{ user.rank }}</span>
+                <!-- 添加头像/徽章 -->
+                <div class="w-8 h-8 flex items-center">
+                  <div v-if="user.avatar" class="w-full h-full">
+                    <fluent-avatar
+                      :image="user.avatar"
+                      :title="user.username"
+                    >
+                      <span slot="badge">{{ user.username }}</span>
+                    </fluent-avatar>
+                  </div>
+                  <div v-else class="w-full h-full">
+                    <fluent-badge appearance="accent" class="w-full h-full flex items-center justify-center text-sm font-medium">
+                      {{ getInitials(user.username) }}
+                      <span class="ml-1 text-xs">{{ user.username }}</span>
+                    </fluent-badge>
+                  </div>
+                </div>
                 <span class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">{{ user.username }}</span>
               </div>
               <div class="flex items-center gap-4">
@@ -160,11 +206,11 @@ const handleLogout = () => {
         <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">最近比赛</h2>
-            <a class="text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
+            <a @click="navigate('/contests')" class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-for="contest in recentContests" :key="contest.id"
-            @click="router.push(`contests/${contest.id}`)"
+            @click="navigate(`contests/${contest.id}`)"
             class="bg-neutral-50 dark:bg-neutral-800 rounded-lg border-1 border-neutral-200 dark:border-neutral-700 p-6 hover:border-blue-500 transition-colors cursor-pointer group">
               <div class="flex justify-between items-start">
                 <h3 class="font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ contest.title }}</h3>
