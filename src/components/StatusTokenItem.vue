@@ -11,7 +11,8 @@ const statusOptions = {
   'Time Limit Exceeded': { icon: 'fluent:timer-20-filled' },
   'Memory Limit Exceeded': { icon: 'fluent:warning-20-filled' },
   'Runtime Error': { icon: 'fluent:error-circle-20-filled' },
-  'Compile Error': { icon: 'fluent:code-20-filled' }
+  'Compile Error': { icon: 'fluent:code-20-filled' },
+  'Duplicate Code Error':{ icon: 'fluent:alert-20-filled' }
 }
 
 const getStatusIcon = (status: string): string => {

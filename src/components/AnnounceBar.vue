@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import { useAttrs } from "vue";
 import { Icon } from "@iconify/vue";
 const attrs = useAttrs();
