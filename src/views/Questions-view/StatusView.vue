@@ -42,6 +42,7 @@ interface Pagination {
   total: number;
 }
 
+
 // 状态选项
 const statusOptions = ref<StatusOption[]>([
   { value: 'all', label: '全部' },
@@ -109,6 +110,9 @@ const pagination = ref<Pagination>({
 // 代码查看对话框
 const isCodeDialogOpen = ref(false)
 import type { Ref } from 'vue'
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const selectedSubmission = ref<Submission | null>(null)
 
@@ -150,6 +154,12 @@ onUnmounted(() => {
     isMobile.value = window.innerWidth < 768
   })
 })
+
+const navigate =(path:string) => {
+  window.scrollTo(0, 0);
+  router.push(path);
+}
+
 </script>
 
 <template>
@@ -266,7 +276,7 @@ onUnmounted(() => {
             <tr v-for="submission in submissions" :key="submission.id">
               
               <td class="px-6 py-4 whitespace-nowrap">
-                <a class="text-blue-600 dark:text-blue-400 hover:underline">
+                <a @click="navigate(`/questions/${submission.problemId}`)" class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">
                   {{ submission.problemId }}. {{ submission.problemTitle }}
                 </a>
               </td>

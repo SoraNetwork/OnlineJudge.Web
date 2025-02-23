@@ -41,6 +41,11 @@ const props = defineProps({
     default: false,
   },
 });
+
+const navigate = (path:string) => {
+  window.scrollTo(0, 0);
+  router.push(path);
+}
 </script>
 
 <template>
@@ -76,7 +81,7 @@ const props = defineProps({
             <td class="py-4">
               <span 
               class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-              @click="router.push(`/questions/${problem.id}`)"
+              @click="navigate(`/questions/${problem.id}`)"
               >
               {{ problem.title }}
               </span>

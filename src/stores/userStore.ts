@@ -1,3 +1,4 @@
+import type { Submission } from '@/components/RecentSubmissions.vue';
 import { ref } from 'vue'
 
 export interface UserInfo {
@@ -10,10 +11,13 @@ export interface UserInfo {
   ranking: number;
   avatar?: string;
   recentSubmissions?: {
+    questionId: string;  // 改为小写的 questionId
     id: string;
-    title: string;
     status: string;
     time: string;
+    memory: string;
+    language: string;
+    submitTime: string;
   }[];
 }
 
@@ -24,7 +28,12 @@ export const userInfo = ref<UserInfo | null>(null)
 // 登录
 export function setLoginState(user: UserInfo) {
   isLoggedIn.value = true
-  userInfo.value = user
+  userInfo.value = {
+    ...user,
+    recentSubmissions: user.recentSubmissions || [] 
+  }
+  // 保存到本地存储
+  localStorage.setItem('user_info', JSON.stringify(userInfo.value))
 }
 
 // 登出
@@ -32,14 +41,30 @@ export function clearLoginState() {
   isLoggedIn.value = false
   userInfo.value = null
   localStorage.removeItem('jwt_token')
+  localStorage.removeItem('user_info') 
 }
 
 // 检查登录状态
 export function checkLoginState(): boolean {
   const token = localStorage.getItem('jwt_token')
-  // 更新响应式状态
-  isLoggedIn.value = !!token
+  const savedUserInfo = localStorage.getItem('user_info')
+  
+  if (token && savedUserInfo) {
+    try {
+      const parsedUserInfo = JSON.parse(savedUserInfo)
+      isLoggedIn.value = true
+      userInfo.value = parsedUserInfo
+    } catch (e) {
+      clearLoginState()
+      return false
+    }
+  } else {
+    clearLoginState()
+    return false
+  }
+  
   return isLoggedIn.value
 }
 
-checkLoginState() 
+// 初始化时检查登录状态
+checkLoginState()

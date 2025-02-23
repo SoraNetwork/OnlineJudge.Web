@@ -39,6 +39,16 @@ interface LoginResponse {
       rating: number;
       solved: number;
       ranking: number;
+      avatar?: string;
+      recentSubmissions?: {
+        questionId: string;
+        id: string;
+        status: string;
+        time: string;
+        memory: string;
+        language: string;
+        submitTime: string;
+      }[];
     };
   };
 }
@@ -57,9 +67,15 @@ async function fake_login(username: string, password: string): Promise<LoginResp
         username: username,
         nickname: "测试用户",
         permissions: ["user"],
-        rating: 0,
-        solved: 0,
-        ranking: 0
+        rating: 1500,
+        solved: 200,
+        ranking: 50,
+        avatar: "",
+        recentSubmissions: [
+          { questionId:"P1002", id: "S1001", status: "Accepted", time: "1ms", memory: "256KB", language: "C++", submitTime: "2024-01-01 12:00" },
+          { questionId:"P1003", id: "S1002", status: "Wrong Answer", time: "2ms", memory: "512KB", language: "Java", submitTime: "2024-01-02 13:00" },
+          { questionId:"P1004", id: "S1003", status: "Time Limit Exceeded", time: "3ms", memory: "768KB", language: "Python", submitTime: "2024-01-03 14:00" },
+        ]
       }
     }
   };
@@ -194,4 +210,4 @@ const handleLogin = async () => {
       </div>
     </div>
   </div>
-</template> 
+</template>

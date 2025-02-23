@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import { useAttrs } from "vue";
 import { Icon } from "@iconify/vue";
 
@@ -19,7 +19,7 @@ const props = defineProps({
 
 const attrs = useAttrs();
 const emit = defineEmits();
-const handleClick = (event: MouseEvent) => {
+const handleClick = (event) => {
   if (props.OnClick) props.OnClick(event);
   emit("click", event);
 };

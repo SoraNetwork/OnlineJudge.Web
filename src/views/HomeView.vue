@@ -7,6 +7,7 @@ import { ref } from "vue";
 import { useRouter, type RouteLocationAsPathGeneric, type RouteLocationAsRelativeGeneric } from "vue-router";
 import { isLoggedIn, userInfo, clearLoginState } from '@/stores/userStore.ts';
 import { login, register, getUserProfile, updateUserProfile } from '@/api/userApi.ts';
+import RecentSubmissions from "@/components/RecentSubmissions.vue";
 
 document.title = "Sora Online Judge • 主页";
 
@@ -60,6 +61,20 @@ const navigate = (path: string)=>{
 const getInitials = (name: string) => {
   return name ? name.charAt(0).toUpperCase() : '?';
 };
+
+// 修改 recentContests 的数据结构，将 QuestionId 改为 questionId
+const recentSubmissions = [
+  { 
+    questionId: "P1002",  // 改为小写的 questionId
+    id: "S1001", 
+    status: "Accepted", 
+    time: "1ms", 
+    memory: "256KB", 
+    language: "C++", 
+    submitTime: "2024-01-01 12:00" 
+  },
+  // ...其他提交记录
+];
 </script>
 
 <template>
@@ -75,7 +90,7 @@ const getInitials = (name: string) => {
         <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div v-if="isLoggedIn" class="flex flex-col gap-4">
             <!-- 已登录状态 -->
-            <div class="flex justify-between items-start">
+            <div class="flex flex-col gap-4">
               <div class="flex items-center gap-4">
                 <!-- 添加头像/徽章 -->
                 <div v-if="userInfo?.avatar" class="w-12 h-12">
@@ -89,7 +104,6 @@ const getInitials = (name: string) => {
                 <div v-else class="w-12 h-12">
                   <fluent-badge appearance="accent" class="w-full h-full flex items-center justify-center text-xl font-medium">
                     {{ getInitials(userInfo?.nickname || userInfo?.username || '') }}
-                    <span class="ml-1 text-sm">{{ userInfo?.nickname || userInfo?.username }}</span>
                   </fluent-badge>
                 </div>
                 <div class="flex flex-col gap-2">
@@ -103,7 +117,7 @@ const getInitials = (name: string) => {
                   </div>
                 </div>
               </div>
-              <div class="flex gap-2">
+              <div class="flex gap-2 self-end">
                 <TokenItem
                   class="cursor-pointer" 
                   Token="查看资料" 
@@ -121,22 +135,7 @@ const getInitials = (name: string) => {
             
             <!-- 最近提交 -->
             <div class="mt-2">
-              <h3 class="text-lg font-semibold mb-3">最近提交</h3>
-              <div class="flex flex-col gap-2">
-                <div v-for="submission in userInfo?.recentSubmissions" :key="submission.id"
-                  class="flex justify-between items-center py-2 border-b-1 border-neutral-200 dark:border-neutral-700 last:border-0">
-                  <div class="flex items-center gap-3">
-                    <span class="text-neutral-600 dark:text-neutral-400">{{ submission.id }}</span>
-                    <span class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">{{ submission.title }}</span>
-                  </div>
-                  <div class="flex items-center gap-4">
-                    <TokenItem 
-                      :Token="submission.status"
-                      :Glyph="submission.status === '通过' ? 'fluent:checkmark-circle-20-filled' : 'fluent:dismiss-circle-20-filled'"
-                    />
-                  </div>
-                </div>
-              </div>
+              <RecentSubmissions :maxCount="2" :showQuestionLink="true" :showViewAllButton="true" v-if="userInfo" :submissions="userInfo!.recentSubmissions||[]" />
             </div>
           </div>
           
@@ -177,13 +176,11 @@ const getInitials = (name: string) => {
                       :image="user.avatar"
                       :title="user.username"
                     >
-                      <span slot="badge">{{ user.username }}</span>
                     </fluent-avatar>
                   </div>
                   <div v-else class="w-full h-full">
                     <fluent-badge appearance="accent" class="w-full h-full flex items-center justify-center text-sm font-medium">
                       {{ getInitials(user.username) }}
-                      <span class="ml-1 text-xs">{{ user.username }}</span>
                     </fluent-badge>
                   </div>
                 </div>
