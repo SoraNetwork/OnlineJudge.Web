@@ -10,7 +10,7 @@ import LoginView from "@/views/user-views/LoginView.vue";
 import { checkLoginState } from "@/stores/userStore";
 import RegisterView from "@/views/user-views/RegisterView.vue";
 import QuestionsView from "@/views/Questions-view/QuestionsView.vue";
-import GroupView from "@/views/GroupView.vue";
+import CommunityView from "@/views/CommunityView.vue";
 import ContestsView from "@/views/contests-views/ContestsView.vue";
 import ProblemView from "@/views/Questions-view/ProblemView.vue";
 import SubmitView from "@/views/Questions-view/SubmitView.vue";
@@ -37,9 +37,9 @@ const router = createRouter({
       component: QuestionsView,
     },
     {
-      path:"/group",
-      name:"group",
-      component: GroupView,
+      path:"/community",
+      name:"Community",
+      component: CommunityView,
     },
     {
       path:"/contests",
