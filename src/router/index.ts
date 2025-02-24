@@ -9,14 +9,15 @@ import ProfileView from "@/views/user-views/ProfileView.vue";
 import LoginView from "@/views/user-views/LoginView.vue";
 import { checkLoginState } from "@/stores/userStore";
 import RegisterView from "@/views/user-views/RegisterView.vue";
-import QuestionsView from "@/views/Questions-view/QuestionsView.vue";
-import CommunityView from "@/views/CommunityView.vue";
+import QuestionsView from "@/views/questions-view/QuestionsView.vue";
+import CommunityView from "@/views/community-views/CommunityView.vue";
 import ContestsView from "@/views/contests-views/ContestsView.vue";
-import ProblemView from "@/views/Questions-view/ProblemView.vue";
-import SubmitView from "@/views/Questions-view/SubmitView.vue";
-import StatusView from "@/views/Questions-view/StatusView.vue";
-import StatusDetailView from "@/views/Questions-view/StatusDetailView.vue";
+import ProblemView from "@/views/questions-view/ProblemView.vue";
+import SubmitView from "@/views/questions-view/SubmitView.vue";
+import StatusView from "@/views/questions-view/StatusView.vue";
+import StatusDetailView from "@/views/questions-view/StatusDetailView.vue";
 import ContestView from "@/views/contests-views/ContestView.vue";
+import PostView from "@/views/community-views/PostView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +41,11 @@ const router = createRouter({
       path:"/community",
       name:"Community",
       component: CommunityView,
+    },
+    {
+      path:'/community/post/:id',
+      name:"Post",
+      component: PostView,
     },
     {
       path:"/contests",

@@ -144,7 +144,8 @@ const handleLogout = () => {
     <div class="flex justify-end flex-auto gap-2">
       <template v-if="isLoggedIn">
         <fluent-menu>
-          <fluent-menu-button id="user-menu-button" class="min-w-0 h-10 px-1 rounded-sm transition bg-transparent flex items-center justify-center"
+          <fluent-menu-button id="user-menu-button"
+            class="min-w-0 h-10 px-1 rounded-sm transition bg-transparent flex items-center justify-center"
             slot="trigger" size="small">
             <div class="flex items-center gap-2">
               <div v-if="userInfo?.avatar" class="w-8 h-8">
@@ -156,6 +157,7 @@ const handleLogout = () => {
                   {{ getInitials(userInfo?.nickname || userInfo?.username || '') }}
                 </fluent-badge>
               </div>
+              <!--  <Avatar :image="userInfo?.avatar" :name="userInfo?.nickname || userInfo?.username || ''" class="w-8 h-8"/>-->
             </div>
           </fluent-menu-button>
 
