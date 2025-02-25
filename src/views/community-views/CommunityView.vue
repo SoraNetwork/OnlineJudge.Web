@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { Icon } from "@iconify/vue";
 import { useRouter } from "vue-router";
 import { isLoggedIn } from '@/stores/userStore';
+import { navyState } from '@fluentui/web-components/styles/states/index.js';
 
 document.title = "Sora Online Judge • 社区";
 
@@ -40,12 +41,16 @@ const posts = ref([
 
 const createPost = () => {
   if (!isLoggedIn.value) {
-    router.push('/login');
+    navigate('/login');
     return;
   }
-  router.push('/community/new-post');
+  navigate('/community/create-post');
 };
 
+const navigate = (path:string) =>{
+  window.scrollTo(0, 0);
+  router.push(path);
+}
 // 获取用户名首字母
 const getInitials = (name: string) => {
   return name ? name.charAt(0).toUpperCase() : '?';
@@ -69,7 +74,7 @@ const getInitials = (name: string) => {
         <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">我的团队</h2>
-            <a class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
+            <a @click="navigate('/teams')" class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
           </div>
           
           <div class="flex flex-col gap-4">
@@ -124,7 +129,7 @@ const getInitials = (name: string) => {
               <div class="flex-1">
                 <!-- 帖子标题和作者信息 -->
                 <div class="flex justify-between items-start">
-                  <h3 class="text-lg font-medium hover:text-blue-600 dark:hover:text-blue-400">{{ post.title }}</h3>
+                  <h3 @click="navigate(`/community/post/${post.id}`)" class="text-lg font-medium hover:text-blue-600 dark:hover:text-blue-400">{{ post.title }}</h3>
                   <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ post.time }}</span>
                 </div>
                 <div class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">{{ post.author }}</div>

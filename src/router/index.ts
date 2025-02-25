@@ -17,7 +17,10 @@ import SubmitView from "@/views/questions-view/SubmitView.vue";
 import StatusView from "@/views/questions-view/StatusView.vue";
 import StatusDetailView from "@/views/questions-view/StatusDetailView.vue";
 import ContestView from "@/views/contests-views/ContestView.vue";
-import PostView from "@/views/community-views/PostView.vue";
+import CreatePostView from "@/views/community-views/CreatePostView.vue";
+import PostDetailView from "@/views/community-views/PostDetailView.vue";
+import TeamsView from "@/views/community-views/TeamsView.vue";
+import TeamDetailView from "@/views/community-views/TeamDetailView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -43,9 +46,14 @@ const router = createRouter({
       component: CommunityView,
     },
     {
-      path:'/community/post/:id',
-      name:"Post",
-      component: PostView,
+      path:'/community/create-post',
+      name:"CreatePost",
+      component: CreatePostView,
+    },
+    {
+      path: "/community/post/:id",
+      name: "post-detail",
+      component: PostDetailView,
     },
     {
       path:"/contests",
@@ -108,6 +116,16 @@ const router = createRouter({
       path: '/questions/:id/submit',
       name: 'submit',
       component: SubmitView,
+    },
+    {
+      path: "/teams",
+      name: "teams",
+      component: TeamsView,
+    },
+    {
+      path: "/teams/:id",
+      name: "team-detail",
+      component: TeamDetailView,
     },
     {
       path: "/:pathMatch(.*)*",
