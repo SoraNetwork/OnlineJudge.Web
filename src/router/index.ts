@@ -21,6 +21,7 @@ import CreatePostView from "@/views/community-views/CreatePostView.vue";
 import PostDetailView from "@/views/community-views/PostDetailView.vue";
 import TeamsView from "@/views/community-views/TeamsView.vue";
 import TeamDetailView from "@/views/community-views/TeamDetailView.vue";
+import ProfileSettingsView from "@/views/user-views/ProfileSettingsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -126,6 +127,12 @@ const router = createRouter({
       path: "/teams/:id",
       name: "team-detail",
       component: TeamDetailView,
+    },
+    {
+      path: "/profile/settings",
+      name: "profile-settings",
+      component: ProfileSettingsView,
+      meta: { requiresAuth: true }  // 需要登录才能访问
     },
     {
       path: "/:pathMatch(.*)*",

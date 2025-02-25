@@ -170,7 +170,7 @@ const handleLogout = () => {
                 <span>个人资料</span>
               </div>
             </fluent-menu-item>
-            <fluent-menu-item @click="router.push('/settings')"
+            <fluent-menu-item @click="navigate('/profile/settings')"
               class="bg-transparent pl-2 pr-5 dark:text-neutral-200 text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition flex items-center">
               <div class="flex items-center gap-2 w-full">
                 <Icon icon="fluent:settings-20-regular" class="w-5 h-5" />

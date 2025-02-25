@@ -19,6 +19,8 @@ export interface UserInfo {
     language: string;
     submitTime: string;
   }[];
+  email?: string;
+  bio?: string;
 }
 
 // 创建全局状态

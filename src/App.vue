@@ -24,7 +24,7 @@ import {
   ProgressBarDefinition,
   AvatarDefinition,
   BadgeDefinition,
-  Badge,
+  TextAreaDefinition
   
 } from "@fluentui/web-components";
 import AnnounceBar from "./components/AnnounceBar.vue";
@@ -47,6 +47,7 @@ TextInputDefinition.define(FluentDesignSystem.registry);
 DialogDefinition.define(FluentDesignSystem.registry);
 AvatarDefinition.define(FluentDesignSystem.registry);
 BadgeDefinition.define(FluentDesignSystem.registry);
+TextAreaDefinition.define(FluentDesignSystem.registry);
 
 initThemeService(document.documentElement);
 </script>
