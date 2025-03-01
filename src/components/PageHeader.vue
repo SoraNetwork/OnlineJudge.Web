@@ -7,7 +7,6 @@ import { useRouter } from "vue-router";
 import IconButton from "./IconButton.vue";
 import { changeFavicon } from "@/utils/utils";
 import { isLoggedIn, userInfo, clearLoginState } from '@/stores/userStore.ts';
-import SoraAvatar from '@/components/SoraAvatar.vue';
 const router = useRouter();
 
 const headerIcon = ref<string>("/Noir.png");

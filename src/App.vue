@@ -24,11 +24,14 @@ import {
   ProgressBarDefinition,
   AvatarDefinition,
   BadgeDefinition,
-  TextAreaDefinition
-  
+  TextAreaDefinition,
+  DialogBodyDefinition,
+  CheckboxDefinition,
 } from "@fluentui/web-components";
 import AnnounceBar from "./components/AnnounceBar.vue";
 
+CheckboxDefinition.define(FluentDesignSystem.registry);
+DialogBodyDefinition.define(FluentDesignSystem.registry);
 ProgressBarDefinition.define(FluentDesignSystem.registry);
 FieldDefinition.define(FluentDesignSystem.registry);
 ButtonDefinition.define(FluentDesignSystem.registry);

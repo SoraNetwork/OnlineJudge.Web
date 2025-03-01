@@ -22,6 +22,7 @@ import PostDetailView from "@/views/community-views/PostDetailView.vue";
 import TeamsView from "@/views/community-views/TeamsView.vue";
 import TeamDetailView from "@/views/community-views/TeamDetailView.vue";
 import ProfileSettingsView from "@/views/user-views/ProfileSettingsView.vue";
+import CreateProblemView from "@/views/questions-view/CreateProblemView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +41,11 @@ const router = createRouter({
       path: "/questions",
       name: "questions",
       component: QuestionsView,
+    },
+    {
+      path:"/questions/create",
+      name:"createquestion",
+      component: CreateProblemView,
     },
     {
       path:"/community",
