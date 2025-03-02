@@ -10,6 +10,7 @@ import frontmatter from '@bytemd/plugin-frontmatter'
 import math from '@bytemd/plugin-math'
 import zhHans from 'bytemd/lib/locales/zh_Hans.json'
 import 'bytemd/dist/index.css'
+import AIServiceDialog from '@/components/AIServiceDialog.vue'
 
 const router = useRouter()
 
@@ -98,6 +99,130 @@ const handleSubmit = () => {
 const handleBack = () => {
   router.back()
 }
+
+// AI 对话框引用
+const aiProblemDialog = ref(null)
+const aiTestCaseDialog = ref(null)
+
+// AI 对话框标题
+const aiDialogTitle = ref('')
+
+// 模拟生成题目描述
+const handleAIProblem = async (prompt) => {
+  try {
+    // 模拟 API 延迟
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // 模拟生成的题目描述
+    return `## 问题描述
+
+根据您的提示："${prompt}"，生成以下题目：
+
+一个长度为 n 的序列，需要找出其中的最长递增子序列。
+
+## 输入格式
+
+第一行一个整数 n，表示序列长度。
+第二行 n 个整数 ai，表示序列中的每个数。
+
+## 输出格式
+
+输出一个整数，表示最长递增子序列的长度。
+
+## 样例输入
+
+\`\`\`
+6
+3 1 4 1 5 9
+\`\`\`
+
+## 样例输出
+
+\`\`\`
+4
+\`\`\`
+
+## 数据范围
+
+- 1 ≤ n ≤ 1000
+- 1 ≤ ai ≤ 10^9
+
+## 提示
+
+样例解释：最长递增子序列为 [1,4,5,9]，长度为 4。`
+  } catch (error) {
+    console.error('生成题目失败:', error)
+    throw new Error('生成题目失败，请稍后重试')
+  }
+}
+
+// 确认使用生成的题目描述
+const handleConfirmProblem = (content) => {
+  problem.value.content = content
+}
+
+// 模拟生成测试点
+const handleAITestCase = async (prompt) => {
+  try {
+    // 模拟 API 延迟
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // 模拟生成的测试点
+    return [
+      {
+        input: '6\n3 1 4 1 5 9',
+        output: '4',
+        score: 20
+      },
+      {
+        input: '8\n1 2 3 4 5 4 3 2',
+        output: '5',
+        score: 20
+      },
+      {
+        input: '4\n1 1 1 1',
+        output: '1',
+        score: 20
+      }
+    ]
+  } catch (error) {
+    console.error('生成测试点失败:', error)
+    throw new Error('生成测试点失败，请稍后重试')
+  }
+}
+
+// 确认使用生成的测试点
+const handleConfirmTestCase = (testCases) => {
+  problem.value.testCases.push(...testCases)
+}
+
+// 显示 AI 题目生成对话框
+const showAIProblemDialog = () => {
+  aiDialogTitle.value = 'AI 生成题目描述'
+  aiProblemDialog.value?.show()
+}
+
+// 显示 AI 测试点生成对话框
+const showAITestCaseDialog = () => {
+  aiDialogTitle.value = 'AI 生成测试点'
+  aiTestCaseDialog.value?.show()
+}
+
+// 自动分配测试点分数
+const autoDistributeScores = () => {
+  const testCount = problem.value.testCases.length
+  if (testCount === 0) return
+  
+  const baseScore = Math.floor(100 / testCount)
+  const remainder = 100 - (baseScore * testCount)
+  
+  problem.value.testCases.forEach((test, index) => {
+    // 将余数加到最后一个测试点
+    test.score = index === testCount - 1 
+      ? baseScore + remainder 
+      : baseScore
+  })
+}
 </script>
 
 <template>
@@ -175,7 +300,13 @@ const handleBack = () => {
 
         <!-- 题目描述 -->
         <div class="space-y-4">
-          <label class="block font-medium text-neutral-700 dark:text-neutral-300">题目描述</label>
+          <div class="flex justify-between items-center">
+            <label class="block font-medium text-neutral-700 dark:text-neutral-300">题目描述</label>
+            <fluent-button class="min-w-[8vw]" appearance="accent-outline" @click="showAIProblemDialog">
+              <Icon icon="fluent:bot-20-filled" class="w-5 h-5 mr-2"/>
+              AI 生成描述
+            </fluent-button>
+          </div>
           <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden">
             <div class="dark:invert">
               <Editor :value="problem.content" :plugins="plugins" :locale="zhHans"
@@ -188,10 +319,25 @@ const handleBack = () => {
         <div class="space-y-4">
           <div class="flex justify-between items-center">
             <h2 class="font-medium text-neutral-700 dark:text-neutral-300">测试数据</h2>
-            <fluent-button appearance="accent-outline" class="min-w-[7.5vw]" @click="addTestCase">
-              <Icon icon="fluent:add-20-filled" class="w-5 h-5 mr-2"/>
-              添加测试点
-            </fluent-button>
+            <div class="flex gap-2">
+              <fluent-button 
+                class="min-w-[8vw]" 
+                appearance="outline" 
+                @click="autoDistributeScores"
+                :disabled="!problem.testCases.length"
+              >
+                <Icon icon="fluent:number-symbol-20-filled" class="w-5 h-5 mr-2"/>
+                均分配分
+              </fluent-button>
+              <fluent-button class="min-w-[8vw]" appearance="accent-outline" @click="showAITestCaseDialog">
+                <Icon icon="fluent:bot-20-filled" class="w-5 h-5 mr-2"/>
+                AI 生成测试点
+              </fluent-button>
+              <fluent-button class="min-w-[8vw]" appearance="accent-outline" @click="addTestCase">
+                <Icon icon="fluent:add-20-filled" class="w-5 h-5 mr-2"/>
+                添加测试点
+              </fluent-button>
+            </div>
           </div>
           <div class="space-y-6">
             <div v-for="(test, index) in problem.testCases" :key="index"
@@ -212,11 +358,11 @@ const handleBack = () => {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
                   <label class="block text-sm text-neutral-600 dark:text-neutral-400">输入数据</label>
-                  <fluent-textarea v-model="test.input" rows="4" />
+                  <fluent-textarea block auto-resize v-model="test.input" rows="4" />
                 </div>
                 <div class="space-y-2">
                   <label class="block text-sm text-neutral-600 dark:text-neutral-400">输出数据</label>
-                  <fluent-textarea v-model="test.output" rows="4" />
+                  <fluent-textarea block auto-resize  v-model="test.output" rows="4" />
                 </div>
               </div>
             </div>
@@ -224,6 +370,22 @@ const handleBack = () => {
         </div>
       </div>
     </div>
+
+    <!-- AI 对话框组件 -->
+    <AIServiceDialog
+      ref="aiProblemDialog"
+      :title="aiDialogTitle"
+      mode="problem"
+      @submit="handleAIProblem"
+      @confirm="handleConfirmProblem"
+    />
+    <AIServiceDialog
+      ref="aiTestCaseDialog"
+      :title="aiDialogTitle"
+      mode="testcase"
+      @submit="handleAITestCase"
+      @confirm="handleConfirmTestCase"
+    />
   </div>
 </template>
 

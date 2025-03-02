@@ -28,6 +28,12 @@ const problem = ref({
   memoryLimit: 256,
   tags: ['数学', '模拟'],
   acceptance: '95%',
+  author: {
+    username: 'admin',
+    nickname: '管理员',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin'
+  },
+  createTime: '2024-01-20 12:30:45',
   content: `## 问题描述
 
 ---
@@ -162,10 +168,22 @@ const handleBack = () => {
               {{ problem.id }}. {{ problem.title }}
               <TokenItem :Token="problem.difficulty" Glyph="fluent:target-20-filled"/>
             </h1>
-            <div class="mt-2 flex flex-wrap gap-4 text-sm text-neutral-600 dark:text-neutral-400">
+            <div class="mt-2 flex flex-wrap items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
               <span>时间限制: {{ problem.timeLimit }}ms</span>
               <span>内存限制: {{ problem.memoryLimit }}MB</span>
               <span>通过率: {{ problem.acceptance }}</span>
+              <span class="flex items-center gap-2">
+                <span>作者:</span>
+                <img 
+                  :src="problem.author.avatar" 
+                  :alt="problem.author.nickname"
+                  class="w-5 h-5 rounded-full"
+                />
+                <span>{{ problem.author.nickname }}</span>
+              </span>
+              <span class="text-neutral-500">
+                创建于 {{ problem.createTime }}
+              </span>
             </div>
           </div>
           <div class="flex gap-3">

@@ -23,6 +23,7 @@ import TeamsView from "@/views/community-views/TeamsView.vue";
 import TeamDetailView from "@/views/community-views/TeamDetailView.vue";
 import ProfileSettingsView from "@/views/user-views/ProfileSettingsView.vue";
 import CreateProblemView from "@/views/questions-view/CreateProblemView.vue";
+import CreateContestView from "@/views/contests-views/CreateContestView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -66,6 +67,11 @@ const router = createRouter({
       path:"/contests",
       name:"contests",
       component: ContestsView,
+    },
+    {
+      path:"/contests/create",
+      name:"createcontest",
+      component: CreateContestView,
     },
     {
       path:"/contests/:id",

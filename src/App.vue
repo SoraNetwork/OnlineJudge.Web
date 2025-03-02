@@ -27,9 +27,11 @@ import {
   TextAreaDefinition,
   DialogBodyDefinition,
   CheckboxDefinition,
+  MessageBarDefinition,
 } from "@fluentui/web-components";
 import AnnounceBar from "./components/AnnounceBar.vue";
 
+MessageBarDefinition.define(FluentDesignSystem.registry)
 CheckboxDefinition.define(FluentDesignSystem.registry);
 DialogBodyDefinition.define(FluentDesignSystem.registry);
 ProgressBarDefinition.define(FluentDesignSystem.registry);

@@ -106,6 +106,12 @@ const formatTime = (timeStr: string) => {
   })
 }
 
+// 添加当前用户信息
+const currentUser = ref({
+  username: 'current_user',
+  isParticipant: false
+})
+
 // 计算比赛状态和剩余时间
 const contestStatus = computed(() => {
   const now = new Date()
@@ -116,19 +122,28 @@ const contestStatus = computed(() => {
     return {
       status: '即将开始',
       color: 'text-blue-600 dark:text-blue-400',
-      icon: 'fluent:calendar-clock-20-filled'
+      icon: 'fluent:calendar-clock-20-filled',
+      canViewProblems: false,
+      canRegister: true,
+      canParticipate: false
     }
   } else if (now >= start && now < end) {
     return {
       status: '进行中',
       color: 'text-green-600 dark:text-green-400',
-      icon: 'fluent:clock-20-filled'
+      icon: 'fluent:clock-20-filled',
+      canViewProblems: true,
+      canRegister: false,
+      canParticipate: true
     }
   } else {
     return {
       status: '已结束',
       color: 'text-neutral-600 dark:text-neutral-400',
-      icon: 'fluent:checkmark-circle-20-filled'
+      icon: 'fluent:checkmark-circle-20-filled',
+      canViewProblems: true,
+      canRegister: false,
+      canParticipate: false
     }
   }
 })
@@ -160,6 +175,17 @@ const getScoreStyle = (score: { status: string, score: number }) => {
   }
   return 'text-neutral-600 dark:text-neutral-400'
 }
+
+// 添加参赛相关方法
+const handleParticipate = () => {
+  // TODO: 实现参赛逻辑
+  currentUser.value.isParticipant = true
+}
+
+// 获取当前用户排名信息
+const currentUserRanking = computed(() => {
+  return rankings.value.find(r => r.username === currentUser.value.username)
+})
 </script>
 
 <template>
@@ -214,15 +240,36 @@ const getScoreStyle = (score: { status: string, score: number }) => {
             <li v-for="(rule, index) in contest.rules" :key="index">{{ rule }}</li>
           </ul>
         </div>
+
+        <!-- 添加参赛按钮 -->
+        <div v-if="!currentUser.isParticipant" class="mt-4">
+          <button v-if="contestStatus.canParticipate"
+                  @click="handleParticipate"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg 
+                         transition-colors duration-200 flex items-center gap-2">
+            <Icon icon="fluent:add-20-filled" class="w-5 h-5" />
+            参加比赛
+          </button>
+          <button v-else-if="contestStatus.canRegister"
+                  @click="handleParticipate"
+                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg 
+                         transition-colors duration-200 flex items-center gap-2">
+            <Icon icon="fluent:calendar-add-20-filled" class="w-5 h-5" />
+            报名参赛
+          </button>
+        </div>
       </div>
 
       <!-- 标签页切换 -->
       <fluent-tablist>
         <fluent-tab 
           v-for="tab in [
-            { id: 'problems', label: '题目', icon: 'fluent:document-20-filled' },
-            { id: 'rankings', label: '排行榜', icon: 'fluent:trophy-20-filled' }
+            { id: 'problems', label: '题目', icon: 'fluent:document-20-filled', 
+              show: contestStatus.canViewProblems },
+            { id: 'rankings', label: '排行榜', icon: 'fluent:trophy-20-filled',
+              show: true }
           ]"
+          v-show="tab.show"
           :key="tab.id"
           :id="tab.id"
           :selected="activeTab === tab.id"
@@ -235,8 +282,20 @@ const getScoreStyle = (score: { status: string, score: number }) => {
         </fluent-tab>
       </fluent-tablist>
 
+      <!-- 比赛未开始提示 -->
+      <div v-if="!contestStatus.canViewProblems && activeTab === 'problems'" 
+           class="mt-6 p-8 text-center bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+        <Icon icon="fluent:lock-closed-20-filled" 
+              class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+        <h3 class="text-lg font-medium mb-2">题目未解锁</h3>
+        <p class="text-neutral-600 dark:text-neutral-400">
+          比赛尚未开始，题目将在开始时解锁
+        </p>
+      </div>
+
       <!-- 题目列表 -->
-      <div v-if="activeTab === 'problems'" class="mt-6">
+      <div v-else-if="activeTab === 'problems' && contestStatus.canViewProblems" 
+           class="mt-6">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
             <thead class="bg-neutral-50 dark:bg-neutral-800">
@@ -290,6 +349,21 @@ const getScoreStyle = (score: { status: string, score: number }) => {
 
       <!-- 排行榜 -->
       <div v-else-if="activeTab === 'rankings'" class="mt-6">
+        <!-- 当前用户排名信息 -->
+        <div v-if="currentUserRanking" 
+             class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <span class="text-neutral-600 dark:text-neutral-400">我的排名：</span>
+              <span class="text-xl font-bold">第 {{ currentUserRanking.rank }} 名</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-neutral-600 dark:text-neutral-400">总分：</span>
+              <span class="text-xl font-bold">{{ currentUserRanking.totalScore }}</span>
+            </div>
+          </div>
+        </div>
+        
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
             <thead class="bg-neutral-50 dark:bg-neutral-800">
