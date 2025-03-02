@@ -24,6 +24,7 @@ import TeamDetailView from "@/views/community-views/TeamDetailView.vue";
 import ProfileSettingsView from "@/views/user-views/ProfileSettingsView.vue";
 import CreateProblemView from "@/views/questions-view/CreateProblemView.vue";
 import CreateContestView from "@/views/contests-views/CreateContestView.vue";
+import UserManagement from "@/views/workbench-views/UserManagement.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -145,6 +146,12 @@ const router = createRouter({
       name: "profile-settings",
       component: ProfileSettingsView,
       meta: { requiresAuth: true }  // 需要登录才能访问
+    },
+    {
+      path: "/admin/users",
+      name: "user-management",
+      component: UserManagement,
+      meta: { requiresAuth: true }
     },
     {
       path: "/:pathMatch(.*)*",

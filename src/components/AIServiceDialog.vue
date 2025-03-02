@@ -248,11 +248,20 @@ defineExpose({
       <div class="mt-6 pt-4 border-t border-neutral-200 dark:border-neutral-800">
         <div class="flex items-center justify-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
           <span>由</span>
-          <Icon icon="arcticons:deepseek" class="w-5 h-5" />
-          <span>DeepSeek</span>
-          <span>生成</span>
+          <img 
+            alt="DeepSeek Logo" 
+            loading="lazy" 
+            width="28" 
+            height="28" 
+            decoding="async" 
+            data-nimg="1" 
+            class="w-25 h-5" 
+            style="color:transparent" 
+            src="https://www.deepseek.com/_next/image?url=https%3A%2F%2Fcdn.deepseek.com%2Flogo.png&amp;w=1920&amp;q=75"
+          />
+          <span>提供支持</span>
           <span class="mx-2">·</span>
-          <span>阿里云计算服务</span>
+          <span>阿里云提供计算服务</span>
         </div>
       </div>
 

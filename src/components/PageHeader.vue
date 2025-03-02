@@ -102,7 +102,8 @@ const handleLogout = () => {
         <ul class="flex gap-2">
           <RouterLink to="/"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
-            active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200">
+            active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200"
+            :exact="true">
             <li class="flex justify-center items-center gap-1 px-2.5 rounded-sm select-none">
               <Icon icon="fluent:home-20-regular" class="w-5 h-5" />
               <p>主页</p>
@@ -111,7 +112,7 @@ const handleLogout = () => {
 
           <RouterLink to="/questions"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
-            active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200">
+            :class="{ 'bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200': $route.path.startsWith('/questions') }">
             <li class="flex justify-center items-center gap-1 px-2.5 rounded-sm select-none">
               <Icon icon="fluent:book-question-mark-20-regular" class="w-5 h-5" />
               <p>题目</p>
@@ -120,7 +121,7 @@ const handleLogout = () => {
 
           <RouterLink to="/contests"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
-            active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200">
+            :class="{ 'bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200': $route.path.startsWith('/contests') }">
             <li class="flex justify-center items-center gap-1 px-2.5 rounded-sm select-none">
               <Icon icon="fluent:align-stretch-vertical-20-regular" class="w-5 h-5" />
               <p>竞赛</p>
@@ -129,7 +130,7 @@ const handleLogout = () => {
 
           <RouterLink to="/community"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
-            active-class="flex rounded-sm bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200">
+            :class="{ 'bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200': $route.path.startsWith('/community') }">
             <li class="flex justify-center items-center gap-1 px-2.5 rounded-sm select-none">
               <Icon icon="fluent:people-24-regular" class="w-5 h-5" />
               <p>社区</p>

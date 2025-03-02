@@ -28,6 +28,7 @@ const problem = ref({
   timeLimit: 1000,
   memoryLimit: 256,
   tags: [],
+  visibility: 'private', // 添加可见性属性
   content: `## 问题描述
 
 请在这里描述题目的具体要求...
@@ -67,6 +68,12 @@ const problem = ref({
 })
 
 const difficulties = ['入门', '简单', '中等', '困难']
+const visibilities = [
+  { value: 'public', label: '公开' },
+  { value: 'team', label: '团队内可见' },
+  { value: 'contest', label: '比赛时可见' },
+  { value: 'private', label: '私有' }
+]
 const newTag = ref('')
 
 const addTag = () => {
@@ -223,10 +230,34 @@ const autoDistributeScores = () => {
       : baseScore
   })
 }
+
+// 添加菜单状态控制
+const isDifficultyMenuOpen = ref(false)
+const isVisibilityMenuOpen = ref(false)
+
+// 添加切换菜单方法
+const toggleMenu = (menu) => {
+  switch (menu) {
+    case 'difficulty':
+      isDifficultyMenuOpen.value = !isDifficultyMenuOpen.value
+      isVisibilityMenuOpen.value = false
+      break
+    case 'visibility':
+      isVisibilityMenuOpen.value = !isVisibilityMenuOpen.value
+      isDifficultyMenuOpen.value = false
+      break
+  }
+}
+
+// 添加关闭所有菜单方法
+const closeAllMenus = () => {
+  isDifficultyMenuOpen.value = false
+  isVisibilityMenuOpen.value = false
+}
 </script>
 
 <template>
-  <div class="bg-white dark:bg-neutral-900">
+  <div class="bg-white dark:bg-neutral-900" @click="closeAllMenus">
     <div class="container mx-auto px-4 py-6">
       <!-- 标题栏 -->
       <div class="flex justify-between items-center mb-8">
@@ -253,17 +284,31 @@ const autoDistributeScores = () => {
 
           <div class="space-y-2">
             <label class="block font-medium text-sm text-neutral-700 dark:text-neutral-300">难度</label>
-            <fluent-menu>
-              <fluent-button slot="trigger" appearance="outline" class="w-full justify-between">
+            <div class="relative" @click.stop>
+              <button
+                @click="toggleMenu('difficulty')"
+                class="min-w-32 px-3 py-1.5 rounded-sm transition flex items-center justify-between bg-transparent dark:text-neutral-200 text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+              >
                 <span>{{ problem.difficulty }}</span>
-                <Icon icon="fluent:chevron-down-20-filled" class="w-4 h-4"/>
-              </fluent-button>
-              <fluent-menu-list>
-                <fluent-menu-item v-for="diff in difficulties" :key="diff" @click="problem.difficulty = diff">
-                  {{ diff }}
-                </fluent-menu-item>
-              </fluent-menu-list>
-            </fluent-menu>
+                <Icon icon="fluent:chevron-down-20-filled" 
+                      class="w-4 h-4 ml-2 transition-transform"
+                      :class="{ 'rotate-180': isDifficultyMenuOpen }" />
+              </button>
+              <div v-show="isDifficultyMenuOpen"
+                   class="absolute z-50 min-w-32 mt-2 rounded-md shadow-lg origin-top-right transition-all">
+                <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 backdrop-blur-md bg-neutral-100/95 dark:bg-neutral-800/95">
+                  <button
+                    v-for="diff in difficulties"
+                    :key="diff"
+                    @click="problem.difficulty = diff; isDifficultyMenuOpen = false"
+                    class="block min-w-32 text-left px-4 py-2 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                    :class="{ 'bg-neutral-200 dark:bg-neutral-700': problem.difficulty === diff }"
+                  >
+                    {{ diff }}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="space-y-2">
@@ -274,6 +319,36 @@ const autoDistributeScores = () => {
           <div class="space-y-2">
             <label class="block font-medium text-sm text-neutral-700 dark:text-neutral-300">内存限制 (MB)</label>
             <fluent-text-input v-model="problem.memoryLimit" type="number" />
+          </div>
+
+          <!-- 在难度选择后添加可见性设置 -->
+          <div class="space-y-2">
+            <label class="block font-medium text-sm text-neutral-700 dark:text-neutral-300">可见性</label>
+            <div class="relative" @click.stop>
+              <button
+                @click="toggleMenu('visibility')"
+                class="min-w-32 px-3 py-1.5 rounded-sm transition flex items-center justify-between bg-transparent dark:text-neutral-200 text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+              >
+                <span>{{ visibilities.find(v => v.value === problem.visibility)?.label }}</span>
+                <Icon icon="fluent:chevron-down-20-filled" 
+                      class="w-4 h-4 ml-2 transition-transform"
+                      :class="{ 'rotate-180': isVisibilityMenuOpen }" />
+              </button>
+              <div v-show="isVisibilityMenuOpen"
+                   class="absolute z-50 min-w-full mt-2 rounded-md shadow-lg origin-top-right transition-all">
+                <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 backdrop-blur-md bg-neutral-100/95 dark:bg-neutral-800/95">
+                  <button
+                    v-for="vis in visibilities"
+                    :key="vis.value"
+                    @click="problem.visibility = vis.value; isVisibilityMenuOpen = false"
+                    class="block min-w-32 text-left px-4 py-2 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                    :class="{ 'bg-neutral-200 dark:bg-neutral-700': problem.visibility === vis.value }"
+                  >
+                    {{ vis.label }}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
