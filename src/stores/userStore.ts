@@ -2,7 +2,7 @@ import type { Submission } from '@/components/RecentSubmissions.vue';
 import { ref } from 'vue'
 
 export interface UserInfo {
-  id: number;
+  id: string;
   username: string;
   nickname?: string;
   permissions: string[];
@@ -11,7 +11,7 @@ export interface UserInfo {
   ranking: number;
   avatar?: string;
   recentSubmissions?: {
-    questionId: string;  // 改为小写的 questionId
+    questionId: string;
     id: string;
     status: string;
     time: string;

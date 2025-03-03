@@ -28,9 +28,16 @@ import {
   DialogBodyDefinition,
   CheckboxDefinition,
   MessageBarDefinition,
+  DropdownDefinition,
+  DropdownOptionDefinition,
+  ListboxDefinition,
+  
 } from "@fluentui/web-components";
 import AnnounceBar from "./components/AnnounceBar.vue";
 
+DropdownDefinition.define(FluentDesignSystem.registry);
+DropdownOptionDefinition.define(FluentDesignSystem.registry);
+ListboxDefinition.define(FluentDesignSystem.registry);
 MessageBarDefinition.define(FluentDesignSystem.registry)
 CheckboxDefinition.define(FluentDesignSystem.registry);
 DialogBodyDefinition.define(FluentDesignSystem.registry);

@@ -60,14 +60,14 @@ const languageMap: Record<string, string> = {
   'javascript': 'javascript'
 };
 
-const handleLanguageSelect = (lang: typeof languages[0]) => {
-  selectedLanguage.value = lang;
-  isMenuOpen.value = false;
+const handleLanguageSelect = (e: Event) => {
+  const value = (e.target as HTMLSelectElement).value;
+  selectedLanguage.value = languages.find(l => l.value === value) || languages[0];
   // 更新编辑器语言
   if (editorInstance.value) {
     monaco.editor.setModelLanguage(
       editorInstance.value.getModel()!,
-      languageMap[lang.value]
+      languageMap[selectedLanguage.value.value]
     );
   }
 };
@@ -142,41 +142,27 @@ onMounted(() => {
         <!-- 代码编辑区 -->
         <div class="flex flex-col gap-4">
           <div class="flex justify-between items-center gap-4">
-            <fluent-menu 
-              :open="isMenuOpen"
-              @toggle="isMenuOpen = !isMenuOpen"
-              class="min-w-[200px]"
-            >
-              <fluent-button
-                appearance="outline"
-                slot="trigger"
-                
+            <!-- Replace menu with dropdown -->
+            <fluent-field>
+              <fluent-dropdown
+                :value="selectedLanguage.value"
+                @change="handleLanguageSelect"
               >
-                <div class="flex gap-2">
-                  <Icon :icon="selectedLanguage.icon" class="w-5 h-5" />
-                  <span>{{ selectedLanguage.label }}</span>
-                  <Icon 
-                    icon="fluent:chevron-down-20-filled" 
-                    class="w-4 h-4 ml-2"
-                    :class="{ 'transform rotate-180': isMenuOpen }"
-                  />
-                </div>
-              </fluent-button>
-              
-              <fluent-menu-list>
-                <fluent-menu-item
-                  v-for="lang in languages"
-                  :key="lang.value"
-                  :value="lang.value"
-                  @click="handleLanguageSelect(lang)"
-                >
-                  <div class="flex items-center gap-2"> 
-                    <Icon :icon="lang.icon" class="w-5 h-5" />
-                    <span class="font-medium">{{ lang.label }}</span>
-                  </div>
-                </fluent-menu-item>
-              </fluent-menu-list>
-            </fluent-menu>
+                <fluent-listbox>
+                  <fluent-option 
+                    v-for="lang in languages"
+                    :key="lang.value" 
+                    :value="lang.value"
+                  >
+                    <div class="flex items-center gap-2">
+                      <Icon :icon="lang.icon" class="w-5 h-5" />
+                      <span class="font-medium">{{ lang.label }}</span>
+                      <span class="text-sm text-neutral-500">{{ lang.description }}</span>
+                    </div>
+                  </fluent-option>
+                </fluent-listbox>
+              </fluent-dropdown>
+            </fluent-field>
 
             <IconButton class="w-auto h-auto" Glyph="fluent:send-20-filled" :onclick="handleSubmit" Text="提交代码"/>
           </div>
