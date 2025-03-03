@@ -2,7 +2,8 @@
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Icon } from "@iconify/vue";
-import { setLoginState } from '@/stores/userStore'
+import { setLoginState } from '@/stores/userStore';
+import { loginUser } from "@/api/userApi";
 
 const router = useRouter();
 const route = useRoute();
@@ -15,88 +16,13 @@ const loginForm = ref({
 const errorMessage = ref("");
 const isLoading = ref(false);
 
-// 添加 SHA-256 加密函数
+// SHA-256 加密函数
 async function sha256(message: string): Promise<string> {
   const msgBuffer = new TextEncoder().encode(message);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   return hashHex;
-}
-
-// 定义接口但不导出
-interface LoginResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: {
-    token: string;
-    user: {
-      id: number;
-      username: string;
-      nickname?: string;
-      permissions: string[];
-      rating: number;
-      solved: number;
-      ranking: number;
-      avatar?: string;
-      recentSubmissions?: {
-        questionId: string;
-        id: string;
-        status: string;
-        time: string;
-        memory: string;
-        language: string;
-        submitTime: string;
-      }[];
-    };
-  };
-}
-async function fake_login(username: string, password: string): Promise<LoginResponse> {
-  // 模拟API延迟
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // 模拟成功响应
-  return {
-    success: true,
-    message: "登录成功",
-    data: {
-      token: "mock_jwt_token",
-      user: {
-        id: 1,
-        username: username,
-        nickname: "测试用户",
-        permissions: ["user"],
-        rating: 1500,
-        solved: 200,
-        ranking: 50,
-        avatar: "",
-        recentSubmissions: [
-          { questionId:"P1002", id: "S1001", status: "Accepted", time: "1ms", memory: "256KB", language: "C++", submitTime: "2024-01-01 12:00" },
-          { questionId:"P1003", id: "S1002", status: "Wrong Answer", time: "2ms", memory: "512KB", language: "Java", submitTime: "2024-01-02 13:00" },
-          { questionId:"P1004", id: "S1003", status: "Time Limit Exceeded", time: "3ms", memory: "768KB", language: "Python", submitTime: "2024-01-03 14:00" },
-        ]
-      }
-    }
-  };
-}
-
-// 改为普通函数声明
-async function login(username: string, password: string): Promise<LoginResponse> {
-  const hashedPassword = await sha256(password.toLowerCase());
-  
-  const response = await fetch("/api/user/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      username,
-      passwordHash: hashedPassword,
-    }),
-  });
-
-  return await response.json();
 }
 
 const handleLogin = async () => {
@@ -109,14 +35,30 @@ const handleLogin = async () => {
     isLoading.value = true;
     errorMessage.value = "";
 
-    const response = await fake_login(loginForm.value.username, loginForm.value.password);
+    // 对密码进行SHA-256哈希
+    const passwordHash = await sha256(loginForm.value.password);
 
-    if (response.success) {
+    // 调用登录API
+    const response = await loginUser({
+      userName: loginForm.value.username,
+      passwordHash: passwordHash
+    });
+
+    if (response.success && response.data) {
       // 保存 JWT Token
-      localStorage.setItem("jwt_token", response.data!.token);
+      localStorage.setItem("jwt_token", response.data.token);
       
       // 更新登录状态
-      setLoginState(response.data!.user);
+      const userProfile = response.data.userProfile;
+      setLoginState({
+        id: userProfile.id,
+        username: userProfile.username,
+        nickname: userProfile.nickname,
+        permissions: userProfile.permissions,
+        rating: userProfile.rating,
+        solved: userProfile.solved,
+        ranking: userProfile.ranking
+      });
 
       // 获取重定向地址或默认返回主页
       const redirect = route.query.redirect as string || "/";
@@ -203,8 +145,8 @@ const handleLogin = async () => {
 
           <!-- 其他选项 -->
           <div class="flex justify-between text-sm">
-            <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">忘记密码？</a>
-            <a @click="router.push('/register')" class="text-blue-600 dark:text-blue-400 hover:underline">注册账号</a>
+            <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">忘记密码？</a>
+            <a @click="router.push('/register')" class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">注册账号</a>
           </div>
         </form>
       </div>

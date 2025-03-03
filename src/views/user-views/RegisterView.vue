@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { setLoginState } from "@/stores/userStore";
+import { registerUser } from "@/api/userApi";
 
 document.title = "Sora Online Judge • 注册";
 
@@ -114,40 +115,35 @@ const handleRegister = async () => {
   }
 
   try {
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: formData.value.username,
-        password: formData.value.password,
-        email: formData.value.email || undefined,
-        phone: formData.value.phone || undefined,
-        nickname: formData.value.nickname || undefined,
-        fullName: formData.value.fullName || undefined,
-        realName: formData.value.realName || undefined,
-      }),
+    const response = await registerUser({
+      userName: formData.value.username,
+      password: formData.value.password,
+      email: formData.value.email || undefined,
+      phone: formData.value.phone || undefined,
+      nickname: formData.value.nickname || undefined,
+      fullName: formData.value.fullName || undefined,
+      realName: formData.value.realName || undefined,
     });
 
-    const data = await response.json();
-
-    if (data.success) {
+    if (response.success && response.data) {
       // 保存token
-      localStorage.setItem("jwt_token", data.data.token);
+      localStorage.setItem("jwt_token", response.data.token);
+      
       // 更新登录状态
+      const userProfile = response.data.userProfile;
       setLoginState({
-        id: 0, // 后端未返回id,暂时使用0
-        username: data.data.username,
-        nickname: data.data.nickname,
-        permissions: ["user", "public"],
-        rating: 0,
-        solved: 0,
-        ranking: 0,
+        id: userProfile.id,
+        username: userProfile.username,
+        nickname: userProfile.nickname,
+        permissions: userProfile.permissions,
+        rating: userProfile.rating,
+        solved: userProfile.solved,
+        ranking: userProfile.ranking,
       });
+      
       router.push("/");
     } else {
-      errorMsg.value = data.message || "注册失败";
+      errorMsg.value = response.message || "注册失败";
     }
   } catch (error) {
     errorMsg.value = "注册过程中发生错误";
@@ -243,4 +239,4 @@ const handleRegister = async () => {
       </form>
     </div>
   </div>
-</template> 
+</template>
