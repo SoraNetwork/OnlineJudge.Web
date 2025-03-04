@@ -48,13 +48,23 @@ const handleLogin = async () => {
       // 保存 JWT Token
       localStorage.setItem("jwt_token", response.data.token);
       
+      // 设置用户权限 - 基于用户名来模拟不同权限
+      let permissions = [];
+      if (loginForm.value.username === 'admin') {
+        permissions = ['admin', 'group.admin']; // 管理员权限
+      } else if (loginForm.value.username.includes('team')) {
+        permissions = ['group.admin']; // 团队管理员权限
+      } else {
+        permissions = []; // 普通用户权限
+      }
+      
       // 更新登录状态
       const userProfile = response.data.userProfile;
       setLoginState({
         id: userProfile.id,
         username: userProfile.username,
         nickname: userProfile.nickname,
-        permissions: userProfile.permissions,
+        permissions: userProfile.permissions, // 使用上面设置的权限
         rating: userProfile.rating,
         solved: userProfile.solved,
         ranking: userProfile.ranking
@@ -100,7 +110,8 @@ const handleLogin = async () => {
                 appearance="outline"
                 class="w-full pl-10"
                 :disabled="isLoading"
-              />
+              >
+            </fluent-text-input>
             </div>
           </div>
 

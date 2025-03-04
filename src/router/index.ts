@@ -7,7 +7,7 @@ import PrivacyView from "@/views/PrivacyView.vue";
 import UnderConstructionView from "@/views/error-views/UnderConstructionView.vue";
 import ProfileView from "@/views/user-views/ProfileView.vue";
 import LoginView from "@/views/user-views/LoginView.vue";
-import { checkLoginState } from "@/stores/userStore";
+import { checkLoginState, userInfo, hasPermission} from "@/stores/userStore";
 import RegisterView from "@/views/user-views/RegisterView.vue";
 import QuestionsView from "@/views/questions-view/QuestionsView.vue";
 import CommunityView from "@/views/community-views/CommunityView.vue";
@@ -24,7 +24,8 @@ import TeamDetailView from "@/views/community-views/TeamDetailView.vue";
 import ProfileSettingsView from "@/views/user-views/ProfileSettingsView.vue";
 import CreateProblemView from "@/views/questions-view/CreateProblemView.vue";
 import CreateContestView from "@/views/contests-views/CreateContestView.vue";
-import UserManagement from "@/views/workbench-views/UserManagement.vue";
+import UserManagement from "@/views/workspace-views/UserManagement.vue";
+import WorkspaceView from "@/views/workspace-views/WorkspaceView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,7 +46,7 @@ const router = createRouter({
       component: QuestionsView,
     },
     {
-      path:"/questions/create",
+      path:"/workspace/questions/create",
       name:"createquestion",
       component: CreateProblemView,
     },
@@ -70,7 +71,7 @@ const router = createRouter({
       component: ContestsView,
     },
     {
-      path:"/contests/create",
+      path:"/workspace/contests/create",
       name:"createcontest",
       component: CreateContestView,
     },
@@ -148,9 +149,15 @@ const router = createRouter({
       meta: { requiresAuth: true }  // 需要登录才能访问
     },
     {
-      path: "/admin/users",
+      path: "/workspace/admin/users",
       name: "user-management",
       component: UserManagement,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: "/workspace",
+      name: "workspace",
+      component: WorkspaceView,
       meta: { requiresAuth: true }
     },
     {
@@ -179,6 +186,18 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
+/*  // 如果页面需要管理员权限且用户不是管理员，重定向到首页
+  if (to.meta.requiresAdmin && !isAdmin()) {
+    next('/');
+    return;
+  }
+
+  // 如果页面需要团队管理员权限且用户不具备，重定向到首页
+  if (to.meta.requiresTeamAdmin && !isTeamAdmin()) {
+    next('/');
+    return;
+  }
+*/ 
   // 其他情况正常放行
   next();
 });

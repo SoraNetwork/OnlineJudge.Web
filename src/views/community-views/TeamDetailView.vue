@@ -1,330 +1,350 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Icon } from "@iconify/vue";
-import { useRouter } from "vue-router";
-import TokenItem from "@/components/TokenItem.vue";
+import { ref, onMounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { Icon } from '@iconify/vue';
+import { userInfo, isLoggedIn } from '@/stores/userStore';
 
 document.title = "Sora Online Judge • 团队详情";
 
-const teamInfo = ref({
-  id: 1,
-  name: "ACM 校队",
-  avatar: "",
-  description: "校 ACM 竞赛队，专注于算法竞赛训练。我们定期组织培训、模拟赛，致力于提高成员的竞赛水平。",
-  createTime: "2023-12-01",
-  members: 25,
-  leader: "tourist",
-  tags: ["竞赛", "算法"],
-  announcement: "本周六下午2点进行ICPC模拟赛，请大家准时参加。",
-  statistics: {
-    totalProblems: 520,
-    weeklyActive: 18,
-    avgRating: 1842
-  }
+const router = useRouter();
+const route = useRoute();
+const teamId = route.params.id;
+
+// 模拟数据
+const team = ref({
+  id: teamId,
+  name: '算法竞赛小队',
+  description: '专注于算法竞赛训练和准备的小团队，欢迎有志于参加ACM-ICPC的同学加入！',
+  createdAt: '2023-12-15',
+  owner: 'alice',
+  memberCount: 15,
+  isPublic: true,
+  contests: [
+    { id: 1, title: '团队周赛 #1', startTime: '2024-03-15 19:00', status: '即将开始' },
+    { id: 2, title: '算法基础训练', startTime: '2024-02-28 14:00', status: '已结束' }
+  ]
 });
 
 const members = ref([
-  { username: "tourist", role: "队长", rating: 3000, solved: 520, lastActive: "2024-01-28" },
-  { username: "jiangly", role: "教练", rating: 2800, solved: 480, lastActive: "2024-01-28" },
-  { username: "XingSora", role: "成员", rating: 2200, solved: 350, lastActive: "2024-01-27" },
+  { id: 1, username: 'alice', nickname: 'Alice', role: '管理员', joinDate: '2023-12-15', solved: 120, rating: 1800 },
+  { id: 2, username: 'bob', nickname: 'Bob', role: '成员', joinDate: '2023-12-16', solved: 95, rating: 1650 },
+  { id: 3, username: 'charlie', nickname: 'Charlie', role: '成员', joinDate: '2023-12-17', solved: 85, rating: 1580 }
 ]);
 
-const problemsets = ref([
-  { id: 1, name: "基础训练", problems: 50, completed: 35 },
-  { id: 2, name: "动态规划进阶", problems: 30, completed: 20 },
-  { id: 3, name: "图论专题", problems: 40, completed: 15 },
+const discussions = ref([
+  { id: 1, title: '讨论本周比赛题目', author: 'alice', replies: 8, createdAt: '2024-03-10 15:30' },
+  { id: 2, title: '分享一个DP问题的新解法', author: 'bob', replies: 3, createdAt: '2024-03-08 12:15' }
 ]);
 
-const rankings = ref([
-  { rank: 1, username: "tourist", rating: 3000, weeklyScore: 150 },
-  { rank: 2, username: "jiangly", rating: 2800, weeklyScore: 120 },
-  { rank: 3, username: "XingSora", rating: 2200, weeklyScore: 100 },
-]);
+const activeTab = ref('overview');
+const isJoined = ref(false);
+const isLoading = ref(false);
 
-const activeTab = ref('intro'); // intro, members, rankings, problems
+// 检查当前用户是否为团队成员
+const userRole = computed(() => {
+  if (!isLoggedIn.value || !userInfo.value) return null;
+  const member = members.value.find(m => m.username === userInfo.value?.username);
+  return member ? member.role : null;
+});
+
+// 检查是否有管理权限
+const canManage = computed(() => {
+  return userRole.value === '管理员';
+});
+
+onMounted(() => {
+  // 这里可以添加获取团队信息的API调用
+  checkMembership();
+});
+
+const checkMembership = () => {
+  if (isLoggedIn.value && userInfo.value) {
+    // 模拟检查用户是否在团队中
+    isJoined.value = members.value.some(member => member.username === userInfo.value?.username);
+  }
+};
+
+const joinTeam = async () => {
+  try {
+    if (!isLoggedIn.value) {
+      router.push('/login?redirect=' + encodeURIComponent(router.currentRoute.value.fullPath));
+      return;
+    }
+    
+    isLoading.value = true;
+    // 模拟API调用
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // 成功后更新状态
+    isJoined.value = true;
+    
+    // 添加当前用户到成员列表
+    if (userInfo.value) {
+      members.value.push({
+        id: members.value.length + 1,
+        username: userInfo.value.username || '',
+        nickname: userInfo.value.nickname || userInfo.value.username || '',
+        role: '成员',
+        joinDate: new Date().toISOString().split('T')[0],
+        solved: userInfo.value.solved || 0,
+        rating: userInfo.value.rating || 0
+      });
+    }
+  } catch (error) {
+    console.error('加入团队失败', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const leaveTeam = async () => {
+  if (confirm('确定要离开该团队吗？')) {
+    try {
+      isLoading.value = true;
+      // 模拟API调用
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 成功后更新状态
+      isJoined.value = false;
+      
+      // 从成员列表中移除当前用户
+      if (userInfo.value) {
+        members.value = members.value.filter(member => member.username !== userInfo.value?.username);
+      }
+    } catch (error) {
+      console.error('离开团队失败', error);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+};
 
 const getInitials = (name: string) => {
   return name ? name.charAt(0).toUpperCase() : '?';
 };
-
-// 添加团内竞赛数据
-const teamContests = ref([
-  {
-    id: 1,
-    title: "ICPC 模拟赛 #1",
-    startTime: "2024-02-03 14:00",
-    duration: "5小时",
-    participants: 18,
-    status: "即将开始"
-  },
-  {
-    id: 2,
-    title: "周末练习赛 #5",
-    startTime: "2024-01-28 19:00",
-    duration: "3小时",
-    participants: 22,
-    status: "已结束",
-    topRanks: [
-      { username: "tourist", score: 500 },
-      { username: "jiangly", score: 400 },
-      { username: "XingSora", score: 300 }
-    ]
-  }
-]);
-
-// 标签页配置
-const tabs = {
-  intro: { label: '介绍', icon: 'fluent:info-20-regular' },
-  members: { label: '成员', icon: 'fluent:people-20-regular' },
-  rankings: { label: '排行', icon: 'fluent:trophy-20-regular' },
-  problems: { label: '题库', icon: 'fluent:book-20-regular' },
-  contests: { label: '竞赛', icon: 'fluent:calendar-star-20-regular' }
-};
-
-// 处理标签切换
-const currentTab = ref('intro');
-
-const handleTabChange = (e: CustomEvent) => {
-  const newTab = e.target as HTMLElement;
-  currentTab.value = newTab.id;
-};
 </script>
 
 <template>
-  <div class="flex flex-col p-8 gap-6">
-    <!-- 团队基本信息 -->
-    <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
-      <div class="flex gap-6">
-        <!-- 团队头像 -->
-        <div class="w-24 h-24">
-          <div v-if="teamInfo.avatar" class="w-full h-full">
-            <fluent-avatar :image="teamInfo.avatar" :title="teamInfo.name" />
-          </div>
-          <div v-else class="w-full h-full">
-            <fluent-badge appearance="accent" class="w-full h-full flex items-center justify-center text-3xl font-medium">
-              {{ getInitials(teamInfo.name) }}
-            </fluent-badge>
-          </div>
-        </div>
-
-        <div class="flex-1">
-          <div class="flex justify-between">
-            <div>
-              <h1 class="text-2xl font-bold">{{ teamInfo.name }}</h1>
-              <div class="flex gap-2 mt-2">
-                <fluent-badge v-for="tag in teamInfo.tags" :key="tag" appearance="outline">
-                  {{ tag }}
-                </fluent-badge>
-              </div>
-            </div>
-            <fluent-button appearance="accent">
-              申请加入
-            </fluent-button>
-          </div>
-
-          <p class="mt-4 text-neutral-600 dark:text-neutral-400">{{ teamInfo.description }}</p>
-
-          <div class="flex gap-6 mt-4 text-sm text-neutral-600 dark:text-neutral-400">
-            <span class="flex items-center gap-1">
-              <Icon icon="fluent:person-20-regular" />
-              队长：{{ teamInfo.leader }}
-            </span>
-            <span class="flex items-center gap-1">
-              <Icon icon="fluent:people-20-regular" />
-              成员：{{ teamInfo.members }}
-            </span>
-            <span class="flex items-center gap-1">
-              <Icon icon="fluent:calendar-20-regular" />
-              创建时间：{{ teamInfo.createTime }}
-            </span>
-          </div>
-        </div>
+  <div class="flex flex-col px-6 py-8 max-w-7xl mx-auto">
+    <!-- 团队标题和基本信息 -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div>
+        <h1 class="text-3xl font-bold">{{ team.name }}</h1>
+        <p class="text-neutral-600 dark:text-neutral-400 mt-1">
+          创建于 {{ team.createdAt }} · {{ team.memberCount }} 名成员 · 
+          <span class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer" @click="router.push(`/profile/${team.owner}`)">
+            {{ team.owner }}
+          </span> 创建
+        </p>
       </div>
-
-      <!-- 团队数据统计 -->
-      <div class="grid grid-cols-3 gap-4 mt-6">
-        <div class="flex flex-col items-center p-4 rounded-lg bg-neutral-100 dark:bg-neutral-700">
-          <span class="text-2xl font-bold">{{ teamInfo.statistics.totalProblems }}</span>
-          <span class="text-sm text-neutral-600 dark:text-neutral-400">题目总数</span>
-        </div>
-        <div class="flex flex-col items-center p-4 rounded-lg bg-neutral-100 dark:bg-neutral-700">
-          <span class="text-2xl font-bold">{{ teamInfo.statistics.weeklyActive }}</span>
-          <span class="text-sm text-neutral-600 dark:text-neutral-400">本周活跃</span>
-        </div>
-        <div class="flex flex-col items-center p-4 rounded-lg bg-neutral-100 dark:bg-neutral-700">
-          <span class="text-2xl font-bold">{{ teamInfo.statistics.avgRating }}</span>
-          <span class="text-sm text-neutral-600 dark:text-neutral-400">平均Rating</span>
-        </div>
+      <div class="flex gap-2">
+        <fluent-button v-if="!isJoined" appearance="accent" @click="joinTeam" :disabled="isLoading">
+          <Icon v-if="isLoading" icon="fluent:spinner-ios-20-regular" class="w-5 h-5 mr-2 animate-spin" />
+          <Icon v-else icon="fluent:people-team-add-20-filled" class="w-5 h-5 mr-2" />
+          加入团队
+        </fluent-button>
+        <fluent-button v-if="isJoined && !canManage" appearance="outline" @click="leaveTeam" :disabled="isLoading">
+          <Icon v-if="isLoading" icon="fluent:spinner-ios-20-regular" class="w-5 h-5 mr-2 animate-spin" />
+          <Icon v-else icon="fluent:people-team-delete-20-filled" class="w-5 h-5 mr-2" />
+          离开团队
+        </fluent-button>
+        <fluent-button v-if="canManage" appearance="accent" @click="router.push(`/teams/${teamId}/manage`)">
+          <Icon icon="fluent:settings-20-filled" class="w-5 h-5 mr-2" />
+          管理团队
+        </fluent-button>
       </div>
     </div>
 
-    <!-- 公告 -->
-    <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
-      <div class="flex items-center gap-2 text-xl font-bold mb-4">
-        <Icon icon="fluent:megaphone-20-filled" class="w-6 h-6" />
-        公告
-      </div>
-      <p class="text-neutral-600 dark:text-neutral-400">{{ teamInfo.announcement }}</p>
-    </div>
-
-    <!-- 使用 fluent-tabs 和 v-if 控制内容显示 -->
-    <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
-      <fluent-tabs>
-        <fluent-tablist>
-          <fluent-tab v-for="(config, id) in tabs" :key="id" :id="id" @click="handleTabChange">
-            <div class="flex items-center gap-2">
-              <Icon :icon="config.icon" />
-              {{ config.label }}
-            </div>
-          </fluent-tab>
-        </fluent-tablist>
-      </fluent-tabs>
-
-      <!-- 内容区域使用 v-if 控制显示 -->
-      <div class="p-4">
-        <!-- 介绍 -->
-        <div v-if="currentTab === 'intro'" class="text-neutral-600 dark:text-neutral-400">
-          <p>{{ teamInfo.description }}</p>
-        </div>
-
-        <!-- 成员列表 -->
-        <div v-if="currentTab === 'members'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="member in members" :key="member.username"
-            class="p-4 rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12">
-                <fluent-badge appearance="accent" class="w-full h-full flex items-center justify-center text-lg font-medium">
-                  {{ getInitials(member.username) }}
-                </fluent-badge>
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <span class="font-medium">{{ member.username }}</span>
-                  <TokenItem :Token="member.role" />
-                </div>
-                <div class="flex justify-between mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-                  <span>Rating: {{ member.rating }}</span>
-                  <span>已解决: {{ member.solved }}</span>
-                  <span>最后活跃: {{ member.lastActive }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 排行榜 -->
-        <div v-if="currentTab === 'rankings'">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b-1 border-neutral-300 dark:border-neutral-700">
-                <th class="px-6 py-3 text-left">排名</th>
-                <th class="px-6 py-3 text-left">用户名</th>
-                <th class="px-6 py-3 text-left">Rating</th>
-                <th class="px-6 py-3 text-left">本周得分</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="user in rankings" :key="user.username"
-                class="border-b-1 border-neutral-300 dark:border-neutral-700">
-                <td class="px-6 py-4">{{ user.rank }}</td>
-                <td class="px-6 py-4">{{ user.username }}</td>
-                <td class="px-6 py-4">{{ user.rating }}</td>
-                <td class="px-6 py-4">{{ user.weeklyScore }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 题库 -->
-        <div v-if="currentTab === 'problems'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="problemset in problemsets" :key="problemset.id"
-            class="p-4 rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
-            <div class="flex justify-between items-center">
-              <h3 class="font-medium">{{ problemset.name }}</h3>
-              <span class="text-sm text-neutral-600 dark:text-neutral-400">
-                {{ problemset.completed }}/{{ problemset.problems }}
-              </span>
-            </div>
-            <div class="mt-3 w-full h-2 rounded-full bg-neutral-200 dark:bg-neutral-700">
-              <div class="h-full rounded-full bg-blue-600"
-                :style="{ width: `${(problemset.completed / problemset.problems * 100)}%` }">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 竞赛列表 -->
-        <div v-if="currentTab === 'contests'" class="flex flex-col gap-6">
-          <!-- 创建竞赛按钮 -->
-          <div class="flex justify-between items-center">
-            <h2 class="text-xl font-bold">团队竞赛</h2>
-            <fluent-button appearance="accent">
-              <Icon icon="fluent:calendar-add-20-filled" class="w-5 h-5 mr-2" />
-              创建竞赛
-            </fluent-button>
-          </div>
-
-          <!-- 竞赛卡片列表 -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div v-for="contest in teamContests" :key="contest.id"
-              class="p-6 rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 hover:border-blue-500 cursor-pointer transition-colors">
-              <div class="flex flex-col gap-4">
-                <div class="flex justify-between items-start">
-                  <h3 class="text-lg font-medium">{{ contest.title }}</h3>
-                  <TokenItem :Token="contest.status" 
-                    :Glyph="contest.status === '即将开始' ? 'fluent:clock-20-filled' : 'fluent:checkmark-circle-20-filled'" />
-                </div>
-
-                <div class="flex flex-col gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                  <div class="flex items-center gap-2">
-                    <Icon icon="fluent:calendar-20-regular" />
-                    开始时间：{{ contest.startTime }}
+    <fluent-tabs>
+      <fluent-tab id="overview-tab" @click="activeTab = 'overview'" :selected="activeTab === 'overview'">概览</fluent-tab>
+      <fluent-tab id="members-tab" @click="activeTab = 'members'" :selected="activeTab === 'members'">成员</fluent-tab>
+      <fluent-tab id="contests-tab" @click="activeTab = 'contests'" :selected="activeTab === 'contests'">比赛</fluent-tab>
+      <fluent-tab id="discussions-tab" @click="activeTab = 'discussions'" :selected="activeTab === 'discussions'">讨论</fluent-tab>
+      
+      <!-- 概览标签页 -->
+      <fluent-tab-panel id="overview-panel" v-show="activeTab === 'overview'">
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-2">
+            <fluent-card class="p-6">
+              <h2 class="text-xl font-semibold mb-4">关于团队</h2>
+              <p class="whitespace-pre-line">{{ team.description }}</p>
+              
+              <h3 class="text-lg font-medium mt-6 mb-3">即将举行的比赛</h3>
+              <div v-if="team.contests.some(c => c.status === '即将开始')" class="flex flex-col gap-3">
+                <fluent-card v-for="contest in team.contests.filter(c => c.status === '即将开始')" :key="contest.id"
+                  class="p-4 cursor-pointer hover:border-blue-500 transition-colors"
+                  @click="router.push(`/contests/${contest.id}`)">
+                  <div class="flex justify-between items-start">
+                    <h3 class="font-medium">{{ contest.title }}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                      {{ contest.status }}
+                    </span>
                   </div>
-                  <div class="flex items-center gap-2">
-                    <Icon icon="fluent:timer-20-regular" />
-                    时长：{{ contest.duration }}
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <Icon icon="fluent:people-20-regular" />
-                    参与人数：{{ contest.participants }}
-                  </div>
+                  <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-2">开始时间：{{ contest.startTime }}</p>
+                </fluent-card>
+              </div>
+              <p v-else class="text-neutral-600 dark:text-neutral-400">暂无即将举行的比赛</p>
+            </fluent-card>
+          </div>
+          
+          <div>
+            <fluent-card class="p-6">
+              <h2 class="text-xl font-semibold mb-4">团队统计</h2>
+              <div class="flex flex-col gap-3">
+                <div class="flex justify-between">
+                  <span class="text-neutral-600 dark:text-neutral-400">成员数</span>
+                  <span class="font-medium">{{ team.memberCount }}</span>
                 </div>
-
-                <!-- 显示已结束竞赛的排名 -->
-                <div v-if="contest.status === '已结束' && contest.topRanks" 
-                  class="mt-2 p-3 rounded-lg bg-neutral-100 dark:bg-neutral-700">
-                  <div class="text-sm font-medium mb-2">TOP 3</div>
-                  <div class="flex flex-col gap-2">
-                    <div v-for="(rank, index) in contest.topRanks" :key="rank.username"
-                      class="flex items-center justify-between">
-                      <div class="flex items-center gap-2">
-                        <TokenItem :Token="`#${index + 1}`" />
-                        <span>{{ rank.username }}</span>
-                      </div>
-                      <span class="font-medium">{{ rank.score }}</span>
+                <div class="flex justify-between">
+                  <span class="text-neutral-600 dark:text-neutral-400">团队比赛</span>
+                  <span class="font-medium">{{ team.contests.length }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-neutral-600 dark:text-neutral-400">团队讨论</span>
+                  <span class="font-medium">{{ discussions.length }}</span>
+                </div>
+              </div>
+              
+              <h3 class="text-lg font-medium mt-6 mb-3">顶尖成员</h3>
+              <div class="flex flex-col gap-2">
+                <div v-for="(member, index) in members.slice(0, 3)" :key="member.id"
+                  class="flex items-center justify-between py-2 border-b-1 border-neutral-200 dark:border-neutral-700 last:border-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold w-4">{{ index + 1 }}</span>
+                    <div v-if="false" class="w-8 h-8">
+                      <fluent-avatar image="avatar-url" :title="member.nickname" />
                     </div>
+                    <div v-else class="w-8 h-8">
+                      <fluent-badge appearance="accent" class="w-full h-full flex items-center justify-center text-sm font-medium">
+                        {{ getInitials(member.nickname) }}
+                      </fluent-badge>
+                    </div>
+                    <a class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer" @click="router.push(`/profile/${member.username}`)">
+                      {{ member.nickname }}
+                    </a>
+                  </div>
+                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
+                    Rating: {{ member.rating }}
                   </div>
                 </div>
               </div>
-            </div>
+            </fluent-card>
           </div>
         </div>
-      </div>
-    </div>
+      </fluent-tab-panel>
+      
+      <!-- 成员标签页 -->
+      <fluent-tab-panel id="members-panel" v-show="activeTab === 'members'">
+        <div class="mt-4">
+          <fluent-data-grid>
+            <fluent-data-grid-row row-type="header">
+              <fluent-data-grid-cell cell-type="columnheader" grid-column="1">用户名</fluent-data-grid-cell>
+              <fluent-data-grid-cell cell-type="columnheader" grid-column="2">昵称</fluent-data-grid-cell>
+              <fluent-data-grid-cell cell-type="columnheader" grid-column="3">角色</fluent-data-grid-cell>
+              <fluent-data-grid-cell cell-type="columnheader" grid-column="4">加入日期</fluent-data-grid-cell>
+              <fluent-data-grid-cell cell-type="columnheader" grid-column="5">已解决</fluent-data-grid-cell>
+              <fluent-data-grid-cell cell-type="columnheader" grid-column="6">Rating</fluent-data-grid-cell>
+            </fluent-data-grid-row>
+            
+            <fluent-data-grid-row v-for="member in members" :key="member.id">
+              <fluent-data-grid-cell grid-column="1">
+                <a class="text-blue-600 hover:underline cursor-pointer" @click="router.push(`/profile/${member.username}`)">
+                  {{ member.username }}
+                </a>
+              </fluent-data-grid-cell>
+              <fluent-data-grid-cell grid-column="2">{{ member.nickname }}</fluent-data-grid-cell>
+              <fluent-data-grid-cell grid-column="3">
+                <span :class="{
+                  'px-2 py-0.5 rounded-full text-xs': true,
+                  'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': member.role === '管理员',
+                  'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': member.role === '成员'
+                }">
+                  {{ member.role }}
+                </span>
+              </fluent-data-grid-cell>
+              <fluent-data-grid-cell grid-column="4">{{ member.joinDate }}</fluent-data-grid-cell>
+              <fluent-data-grid-cell grid-column="5">{{ member.solved }}</fluent-data-grid-cell>
+              <fluent-data-grid-cell grid-column="6">{{ member.rating }}</fluent-data-grid-cell>
+            </fluent-data-grid-row>
+          </fluent-data-grid>
+        </div>
+      </fluent-tab-panel>
+      
+      <!-- 比赛标签页 -->
+      <fluent-tab-panel id="contests-panel" v-show="activeTab === 'contests'">
+        <div class="mt-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <fluent-card v-for="contest in team.contests" :key="contest.id"
+              class="p-6 cursor-pointer hover:border-blue-500 transition-colors"
+              @click="router.push(`/contests/${contest.id}`)">
+              <div class="flex justify-between items-start">
+                <h3 class="font-medium">{{ contest.title }}</h3>
+                <span :class="{
+                  'px-2 py-0.5 rounded-full text-xs': true,
+                  'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': contest.status === '即将开始',
+                  'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': contest.status === '进行中',
+                  'bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200': contest.status === '已结束'
+                }">
+                  {{ contest.status }}
+                </span>
+              </div>
+              <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-2">开始时间：{{ contest.startTime }}</p>
+            </fluent-card>
+            
+            <!-- 创建比赛卡片 (仅管理员可见) -->
+            <fluent-card v-if="canManage" 
+              class="p-6 border-dashed flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
+              @click="router.push(`/workspace/contests/create?team=${teamId}`)">
+              <div class="flex flex-col items-center">
+                <Icon icon="fluent:calendar-add-20-filled" class="w-10 h-10 text-neutral-400 dark:text-neutral-600 mb-2" />
+                <p class="text-neutral-600 dark:text-neutral-400">创建团队比赛</p>
+              </div>
+            </fluent-card>
+          </div>
+        </div>
+      </fluent-tab-panel>
+      
+      <!-- 讨论标签页 -->
+      <fluent-tab-panel id="discussions-panel" v-show="activeTab === 'discussions'">
+        <div class="mt-4">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold">团队讨论</h3>
+            <fluent-button appearance="accent" @click="router.push(`/community/create-post?team=${teamId}`)">
+              <Icon icon="fluent:add-20-filled" class="w-5 h-5 mr-2" />
+              发起讨论
+            </fluent-button>
+          </div>
+          
+          <div v-if="discussions.length > 0">
+            <fluent-card v-for="discussion in discussions" :key="discussion.id"
+              class="mb-4 p-5 hover:border-blue-500 transition-colors cursor-pointer"
+              @click="router.push(`/community/post/${discussion.id}`)">
+              <div class="flex justify-between">
+                <h4 class="text-lg font-medium">{{ discussion.title }}</h4>
+                <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ discussion.createdAt }}</span>
+              </div>
+              <div class="flex gap-6 mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <div class="flex items-center gap-1">
+                  <Icon icon="fluent:person-20-regular" class="w-4 h-4" />
+                  <span>{{ discussion.author }}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <Icon icon="fluent:comment-20-regular" class="w-4 h-4" />
+                  <span>{{ discussion.replies }} 回复</span>
+                </div>
+              </div>
+            </fluent-card>
+          </div>
+          
+          <div v-else class="flex flex-col items-center justify-center py-10">
+            <Icon icon="fluent:chat-empty-20-regular" class="w-16 h-16 text-neutral-400 dark:text-neutral-600 mb-4" />
+            <p class="text-neutral-600 dark:text-neutral-400">暂无讨论</p>
+            <fluent-button appearance="accent" class="mt-4" @click="router.push(`/community/create-post?team=${teamId}`)">
+              发起第一个讨论
+            </fluent-button>
+          </div>
+        </div>
+      </fluent-tab-panel>
+    </fluent-tabs>
   </div>
 </template>
-
-<style scoped>
-fluent-tab {
-  height: 48px;
-  padding: 0 16px;
-}
-
-fluent-tab[aria-selected="true"] {
-  color: var(--accent-foreground-rest);
-}
-
-fluent-tab-panel {
-  padding: 0;
-}
-</style>

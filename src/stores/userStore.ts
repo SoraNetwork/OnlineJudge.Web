@@ -1,71 +1,86 @@
-import type { Submission } from '@/components/RecentSubmissions.vue';
 import { ref } from 'vue'
 
-export interface UserInfo {
+export interface User {
   id: string;
   username: string;
   nickname?: string;
-  permissions: string[];
-  rating: number;
-  solved: number;
-  ranking: number;
+  email?: string;
   avatar?: string;
-  recentSubmissions?: {
-    questionId: string;
+  // 不添加 role 字段，而是使用 permissions 数组判断角色
+  permissions: string[];
+  solved: number;
+  rating: number;
+  ranking: number;
+  recentSubmissions?: Array<{
     id: string;
+    questionId: string;
     status: string;
     time: string;
     memory: string;
     language: string;
     submitTime: string;
-  }[];
-  email?: string;
-  bio?: string;
+  }>;
 }
 
 // 创建全局状态
 export const isLoggedIn = ref(false)
-export const userInfo = ref<UserInfo | null>(null)
+export const userInfo = ref<User | null>(null)
+
+// 通过 permissions 判断用户权限
+export function hasPermission(permission: string): boolean {
+  return isLoggedIn.value && userInfo.value?.permissions?.includes(permission) || false;
+}
+
+// 判断是否为管理员
+/**export function isAdmin(): boolean {
+  return hasPermission('admin') || hasPermission('superadmin');
+}
+
+// 判断是否为团队管理员
+export function isTeamAdmin(): boolean {
+  return hasPermission('group.admin') || isAdmin();
+} */
 
 // 登录
-export function setLoginState(user: UserInfo) {
-  isLoggedIn.value = true
-  userInfo.value = {
-    ...user,
-    recentSubmissions: user.recentSubmissions || [] 
+export function setLoginState(user: User) {
+  // 确保 permissions 数组存在
+  if (!user.permissions) {
+    user.permissions = [];
   }
-  // 保存到本地存储
-  localStorage.setItem('user_info', JSON.stringify(userInfo.value))
+  
+  userInfo.value = user;
+  isLoggedIn.value = true;
+  localStorage.setItem('userInfo', JSON.stringify(user));
 }
 
 // 登出
 export function clearLoginState() {
   isLoggedIn.value = false
   userInfo.value = null
-  localStorage.removeItem('jwt_token')
-  localStorage.removeItem('user_info') 
+  localStorage.removeItem('userInfo');
 }
 
 // 检查登录状态
 export function checkLoginState(): boolean {
-  const token = localStorage.getItem('jwt_token')
-  const savedUserInfo = localStorage.getItem('user_info')
-  
-  if (token && savedUserInfo) {
-    try {
-      const parsedUserInfo = JSON.parse(savedUserInfo)
-      isLoggedIn.value = true
-      userInfo.value = parsedUserInfo
-    } catch (e) {
-      clearLoginState()
-      return false
+  try {
+    const storedUserInfo = localStorage.getItem('userInfo');
+    if (storedUserInfo) {
+      const user = JSON.parse(storedUserInfo);
+      
+      // 确保 permissions 数组存在
+      if (!user.permissions) {
+        user.permissions = [];
+      }
+      
+      userInfo.value = user;
+      isLoggedIn.value = true;
+      return true;
     }
-  } else {
-    clearLoginState()
-    return false
+  } catch (error) {
+    console.error('检查登录状态失败', error);
+    clearLoginState();
   }
-  
-  return isLoggedIn.value
+  return false;
 }
 
 // 初始化时检查登录状态

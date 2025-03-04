@@ -264,27 +264,41 @@ const applyProblemSelection = (problem: { id: number, title: string, difficulty:
                      class="w-full px-3 py-2 rounded-lg border dark:bg-neutral-700 dark:border-neutral-600" />
             </div>
             <div class="space-y-2">
-              <label class="block text-sm font-medium">比赛时长</label>
-              <fluent-menu>
+                <label class="block text-sm font-medium">比赛时长</label>
+                <fluent-menu>
                 <fluent-button slot="trigger" 
-                              appearance="outline"
-                              class="w-full justify-between">
-                  <span>{{ contestForm.duration }}小时</span>
+                        appearance="outline"
+                        class="w-full justify-between">
+                  <span>{{ 
+                  durationOptions.find(opt => opt.value === contestForm.duration)?.label || 
+                  `${contestForm.duration}小时` 
+                  }}</span>
                   <Icon icon="fluent:chevron-down-20-filled" class="w-4 h-4"/>
                 </fluent-button>
-                <fluent-menu-list>
-                  <fluent-menu-item v-for="option in durationOptions" 
-                                  :key="option.value"
-                                  @click="handleDurationSelect(option.value)">
-                    {{ option.label }}
+                <fluent-menu-list class="max-h-60 overflow-y-auto">
+                  <fluent-menu-item 
+                  v-for="option in durationOptions" 
+                  :key="option.value"
+                  @click="handleDurationSelect(option.value)"
+                  class="px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                  :class="{'bg-blue-50 dark:bg-blue-900/20': contestForm.duration === option.value}"
+                  >
+                  <div class="flex items-center justify-between w-full">
+                    <span>{{ option.label }}</span>
+                    <Icon 
+                    v-if="contestForm.duration === option.value"
+                    icon="fluent:checkmark-16-filled" 
+                    class="w-4 h-4 text-blue-500" 
+                    />
+                  </div>
                   </fluent-menu-item>
                 </fluent-menu-list>
-              </fluent-menu>
+                </fluent-menu>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="space-y-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!--- <div class="space-y-2">
               <label class="block text-sm font-medium">比赛时长（小时）</label>
               <select v-model="contestForm.duration"
                       class="w-full px-3 py-2 rounded-lg border dark:bg-neutral-700 dark:border-neutral-600">
@@ -292,7 +306,7 @@ const applyProblemSelection = (problem: { id: number, title: string, difficulty:
                   {{ option.label }}
                 </option>
               </select>
-            </div>
+            </div> -->
             <div class="space-y-2">
               <label class="block text-sm font-medium">比赛类型</label>
               <select v-model="contestForm.type"
@@ -384,7 +398,7 @@ const applyProblemSelection = (problem: { id: number, title: string, difficulty:
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-medium">比赛规则</h2>
             <button @click="addRule"
-                    class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                    class="cursor-pointer text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
               <Icon icon="fluent:add-20-filled" class="w-5 h-5" />
             </button>
           </div>
@@ -397,7 +411,7 @@ const applyProblemSelection = (problem: { id: number, title: string, difficulty:
                      class="flex-1 px-3 py-2 rounded-lg border dark:bg-neutral-700 dark:border-neutral-600"
                      placeholder="输入规则内容" />
               <button @click="removeRule(index)"
-                      class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                      class="cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
                 <Icon icon="fluent:delete-20-filled" class="w-5 h-5" />
               </button>
             </div>
@@ -409,7 +423,7 @@ const applyProblemSelection = (problem: { id: number, title: string, difficulty:
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-medium">题目列表</h2>
             <button @click="addProblem"
-                    class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                    class="cursor-pointer text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
               <Icon icon="fluent:add-20-filled" class="w-5 h-5" />
             </button>
           </div>
@@ -455,8 +469,8 @@ const applyProblemSelection = (problem: { id: number, title: string, difficulty:
 
               <!-- 删除按钮 -->
               <div class="md:col-span-1 flex items-center justify-center">
-                <button @click="removeProblem(index)"
-                        class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                <button  @click="removeProblem(index)"
+                        class="cursor-pointer text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
                   <Icon icon="fluent:delete-20-filled" class="w-5 h-5" />
                 </button>
               </div>
