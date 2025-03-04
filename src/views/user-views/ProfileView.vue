@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TokenItem from "@/components/TokenItem.vue";
+import RecentSubmissions from "@/components/RecentSubmissions.vue";
 import { Icon } from "@iconify/vue";
 import { ref, onMounted } from "vue";
 import { getUserProfile } from "@/api/userApi";
@@ -41,6 +42,17 @@ interface RatingRecord {
   rating: number;
 }
 
+interface Submission {
+  id: string;
+  status: string;
+  time: string;
+  memory: string;
+  language: string;
+  submitTime: string;
+  username?: string;
+  questionId?: string;
+}
+
 // 用户信息状态
 const userInfo = ref({
   nickname: "" ,
@@ -57,6 +69,7 @@ const userInfo = ref({
   },
   badges: [] as Badge[],
   recentActivity: [] as Activity[],
+  recentSubmissions: [] as Submission[],
   problemTags: [] as ProblemTag[],
   ratingHistory: [] as RatingRecord[]
 });
@@ -89,6 +102,7 @@ const fetchUserProfile = async (userId: string) => {
         },
         badges: response.data.badges || [],
         recentActivity: response.data.recentActivity || [],
+        recentSubmissions: response.data.recentSubmissions || [],
         problemTags: response.data.problemTags || [],
         ratingHistory: response.data.ratingHistory || []
       };
@@ -203,6 +217,18 @@ onMounted(async () => {
             </div>
           </div>
 
+          <!-- 最近提交 -->
+          <div v-if="userInfo.recentSubmissions && userInfo.recentSubmissions.length > 0"
+               class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+            <RecentSubmissions 
+              :submissions="userInfo.recentSubmissions" 
+              title="最近提交"
+              :showQuestionLink="true"
+              :showViewAllButton="true"
+              :allButtonLink="`/questions/status/user/${userInfo.username}`"
+            />
+          </div>
+
           <!-- 最近活动 -->
           <div v-if="userInfo.recentActivity && userInfo.recentActivity.length > 0"
                class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
@@ -227,7 +253,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div v-if="!userInfo.badges?.length && !userInfo.recentActivity?.length"
+          <div v-if="!userInfo.badges?.length && !userInfo.recentActivity?.length && !userInfo.recentSubmissions?.length"
                class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6 text-center">
             <p class="text-neutral-600 dark:text-neutral-400">暂无活动记录</p>
           </div>

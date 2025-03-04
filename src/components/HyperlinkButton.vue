@@ -1,5 +1,5 @@
 <script setup>
-import { useAttrs } from "vue";
+import { useAttrs, defineProps, defineEmits } from "vue";
 
 const props = defineProps({
   Content: {
@@ -10,32 +10,58 @@ const props = defineProps({
     type: Function,
     required: false,
   },
+  href: {
+    type: String,
+    default: undefined
+  },
+  size: {
+    type: String,
+    default: 'default' // default, small, large
+  },
+  disabled: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const attrs = useAttrs();
-const emit = defineEmits();
+const emit = defineEmits(['click']);
 
 const handleClick = (event) => {
-  if (props.OnClick) props.OnClick(event);
-  emit("click", event);
+  if (!props.disabled) {
+    if (props.OnClick) props.OnClick(event);
+    emit('click', event);
+  }
 };
-
 </script>
 
 <template>
-  <a v-bind="attrs">
-    <fluent-button
-      appearance="transparent"
-      @click="handleClick"
-      :class="[
-        $attrs.class,
-        'min-w-0 flex rounded-sm font-normal gap-1 px-3 py-1 select-none hover:bg-neutral-200 dark:hover:bg-neutral-700 active:bg-neutral-200 dark:active:bg-neutral-700 text-blue-900 active:text-blue-800 dark:text-blue-200 dark:active:text-blue-300 transition',
-      ]"
-      style="font-size: 15px"
-    >
-      <slot>
-        {{ Content }}
-      </slot>
-    </fluent-button>
+  <a 
+    v-if="href" 
+    :href="href"
+    :class="[
+      'inline-flex items-center transition-colors focus:outline-none',
+      disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+      size === 'small' ? 'text-sm' : size === 'large' ? 'text-lg' : 'text-base'
+    ]"
+    @click.prevent="!disabled && handleClick($event)"
+  >
+    <slot>
+      {{ Content }}
+    </slot>
   </a>
+  <button 
+    v-else
+    :class="[
+      'inline-flex items-center transition-colors focus:outline-none bg-transparent p-0 m-0 border-0',
+      disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+      size === 'small' ? 'text-sm' : size === 'large' ? 'text-lg' : 'text-base'
+    ]"
+    :disabled="disabled"
+    @click="handleClick"
+  >
+    <slot>
+      {{ Content }}
+    </slot>
+  </button>
 </template>

@@ -7,7 +7,7 @@ import PrivacyView from "@/views/PrivacyView.vue";
 import UnderConstructionView from "@/views/error-views/UnderConstructionView.vue";
 import ProfileView from "@/views/user-views/ProfileView.vue";
 import LoginView from "@/views/user-views/LoginView.vue";
-import { checkLoginState, userInfo, hasPermission} from "@/stores/userStore";
+import { checkLoginState, userInfo, hasPermission, isAdmin, isTeamAdmin} from "@/stores/userStore";
 import RegisterView from "@/views/user-views/RegisterView.vue";
 import QuestionsView from "@/views/questions-view/QuestionsView.vue";
 import CommunityView from "@/views/community-views/CommunityView.vue";
@@ -146,7 +146,7 @@ const router = createRouter({
       path: "/profile/settings",
       name: "profile-settings",
       component: ProfileSettingsView,
-      meta: { requiresAuth: true }  // 需要登录才能访问
+      meta: { requiresAuth: true }  
     },
     {
       path: "/workspace/admin/users",
@@ -164,6 +164,7 @@ const router = createRouter({
       path: "/:pathMatch(.*)*",
       redirect: "/not-found",
     },
+
   ],
 });
 
@@ -186,7 +187,7 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
-/*  // 如果页面需要管理员权限且用户不是管理员，重定向到首页
+  // 如果页面需要管理员权限且用户不是管理员，重定向到首页
   if (to.meta.requiresAdmin && !isAdmin()) {
     next('/');
     return;
@@ -197,7 +198,7 @@ router.beforeEach((to, from, next) => {
     next('/');
     return;
   }
-*/ 
+ 
   // 其他情况正常放行
   next();
 });

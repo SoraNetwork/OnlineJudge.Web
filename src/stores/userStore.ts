@@ -32,14 +32,14 @@ export function hasPermission(permission: string): boolean {
 }
 
 // 判断是否为管理员
-/**export function isAdmin(): boolean {
+export function isAdmin(): boolean {
   return hasPermission('admin') || hasPermission('superadmin');
 }
 
 // 判断是否为团队管理员
 export function isTeamAdmin(): boolean {
   return hasPermission('group.admin') || isAdmin();
-} */
+} 
 
 // 登录
 export function setLoginState(user: User) {
