@@ -139,7 +139,7 @@ const handleLogout = () => {
 
           <RouterLink to="/workspace"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
-            :class="{ 'bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200': $route.path.startsWith('/community') }">
+            :class="{ 'bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200': $route.path.startsWith('/workspace') }">
             <li class="flex justify-center items-center gap-1 px-2.5 rounded-sm select-none">
               <Icon icon="fluent:resize-table-24-regular" class="w-5 h-5" />
               <p>工作台</p>

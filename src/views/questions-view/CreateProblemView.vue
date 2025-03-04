@@ -11,6 +11,7 @@ import math from '@bytemd/plugin-math'
 import zhHans from 'bytemd/lib/locales/zh_Hans.json'
 import 'bytemd/dist/index.css'
 import AIServiceDialog from '@/components/AIServiceDialog.vue'
+import { createQuestion, generateQuestionByAI, generateTestcasesByAI } from '@/api/question'
 
 const router = useRouter()
 
@@ -97,10 +98,35 @@ const removeTestCase = (index) => {
   problem.value.testCases.splice(index, 1)
 }
 
-const handleSubmit = () => {
-  console.log('提交题目:', problem.value)
-  // 这里应该调用API保存题目
-  router.push('/questions')
+const handleSubmit = async () => {
+  try {
+    // 将表单数据转换为API请求格式
+    const request = {
+      languageCode: 'markdown', // 假设默认使用markdown
+      title: problem.value.title,
+      description: problem.value.content,
+      checkpoints: problem.value.testCases.map(testCase => ({
+        input: testCase.input,
+        output: testCase.output,
+        score: testCase.score
+      })),
+      visibility: [problem.value.visibility], // 后端API需要数组格式的visibility
+      tags: problem.value.tags
+    }
+    
+    // 调用创建题目API
+    const response = await createQuestion(request)
+    
+    if (response.success) {
+      alert('题目创建成功！')
+      router.push('/questions')
+    } else {
+      alert(`创建失败: ${response.message || '未知错误'}`)
+    }
+  } catch (error) {
+    console.error('提交题目时出错:', error)
+    alert(`创建失败: ${error.message || '未知错误'}`)
+  }
 }
 
 const handleBack = () => {
@@ -114,49 +140,18 @@ const aiTestCaseDialog = ref(null)
 // AI 对话框标题
 const aiDialogTitle = ref('')
 
-// 模拟生成题目描述
+// 使用AI生成题目描述
 const handleAIProblem = async (prompt) => {
   try {
-    // 模拟 API 延迟
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    const response = await generateQuestionByAI({
+      description: prompt
+    })
     
-    // 模拟生成的题目描述
-    return `## 问题描述
-
-根据您的提示："${prompt}"，生成以下题目：
-
-一个长度为 n 的序列，需要找出其中的最长递增子序列。
-
-## 输入格式
-
-第一行一个整数 n，表示序列长度。
-第二行 n 个整数 ai，表示序列中的每个数。
-
-## 输出格式
-
-输出一个整数，表示最长递增子序列的长度。
-
-## 样例输入
-
-\`\`\`
-6
-3 1 4 1 5 9
-\`\`\`
-
-## 样例输出
-
-\`\`\`
-4
-\`\`\`
-
-## 数据范围
-
-- 1 ≤ n ≤ 1000
-- 1 ≤ ai ≤ 10^9
-
-## 提示
-
-样例解释：最长递增子序列为 [1,4,5,9]，长度为 4。`
+    if (response.success) {
+      return response.data
+    } else {
+      throw new Error(response.message || '生成题目描述失败')
+    }
   } catch (error) {
     console.error('生成题目失败:', error)
     throw new Error('生成题目失败，请稍后重试')
@@ -168,30 +163,29 @@ const handleConfirmProblem = (content) => {
   problem.value.content = content
 }
 
-// 模拟生成测试点
+// 使用AI生成测试点
 const handleAITestCase = async (prompt) => {
   try {
-    // 模拟 API 延迟
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    // 调用AI生成测试用例API
+    const response = await generateTestcasesByAI({
+      title: problem.value.title,
+      description: problem.value.content + '\n\n用户提示: ' + prompt,
+      testCaseCount: 5 // 默认生成5个测试用例
+    })
     
-    // 模拟生成的测试点
-    return [
-      {
-        input: '6\n3 1 4 1 5 9',
-        output: '4',
-        score: 20
-      },
-      {
-        input: '8\n1 2 3 4 5 4 3 2',
-        output: '5',
-        score: 20
-      },
-      {
-        input: '4\n1 1 1 1',
-        output: '1',
-        score: 20
-      }
-    ]
+    if (response.success) {
+      // 解析返回的JSON字符串
+      const testCaseData = JSON.parse(response.data)
+      
+      // 将API返回的数据转换为组件需要的格式
+      return testCaseData.testCases.map((tc, index) => ({
+        input: tc.input,
+        output: tc.expectedOutput,
+        score: Math.floor(100 / testCaseData.testCases.length) // 平均分配分数
+      }))
+    } else {
+      throw new Error(response.message || '生成测试用例失败')
+    }
   } catch (error) {
     console.error('生成测试点失败:', error)
     throw new Error('生成测试点失败，请稍后重试')

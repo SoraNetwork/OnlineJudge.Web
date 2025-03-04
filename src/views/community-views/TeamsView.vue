@@ -108,12 +108,12 @@ const navigateToCreateTeam = () => {
     </div>
 
     <!-- 过滤选项 -->
-    <div class="mb-6">
-      <fluent-tabs>
+    <div class="min-w-[20vw]">
+      <fluent-tablist class="min-w-full">
         <fluent-tab id="all-tab" @click="filterType = 'all'" :selected="filterType === 'all'">全部团队</fluent-tab>
         <fluent-tab id="public-tab" @click="filterType = 'public'" :selected="filterType === 'public'">公开团队</fluent-tab>
         <fluent-tab id="private-tab" @click="filterType = 'private'" :selected="filterType === 'private'">私密团队</fluent-tab>
-      </fluent-tabs>
+      </fluent-tablist>
     </div>
 
     <!-- 团队列表 -->

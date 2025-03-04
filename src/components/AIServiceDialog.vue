@@ -8,7 +8,8 @@ import gfm from '@bytemd/plugin-gfm'
 import highlight from '@bytemd/plugin-highlight'
 import math from '@bytemd/plugin-math'
 import zhHans from 'bytemd/lib/locales/zh_Hans.json'
-import { mockAiResponse } from '../utils/mockAiResponse'
+// 替换模拟数据导入为实际API导入
+import { generateQuestionByAI, generateTestcasesByAI } from '@/api/question'
 
 const dialog = ref(null)
 
@@ -62,16 +63,50 @@ const hide = () => {
     reset()
 }
 
-// 处理提交
+// 处理提交 - 替换为实际API调用
 const handleSubmit = async () => {
   if (!prompt.value.trim()) return
 
   try {
     isLoading.value = true
     clearError()
-    // 使用模拟数据，传入用户设置的测试点个数
-    const response = await mockAiResponse(props.mode, prompt.value, customTestcaseCount.value)
-    previewData.value = response
+    
+    let response
+    
+    if (props.mode === 'problem') {
+      // 调用生成题目描述API
+      response = await generateQuestionByAI({
+        description: prompt.value
+      })
+      
+      if (response.success) {
+        previewData.value = response.data
+      } else {
+        throw new Error(response.message || '生成题目描述失败')
+      }
+    } else {
+      // 调用生成测试用例API
+      response = await generateTestcasesByAI({
+        title: '', // 父组件可能需要传入这个值
+        description: prompt.value,
+        testCaseCount: customTestcaseCount.value
+      })
+      
+      if (response.success) {
+        // 解析返回的JSON字符串
+        const testCaseData = JSON.parse(response.data)
+        
+        // 将API返回的数据转换为组件需要的格式
+        previewData.value = testCaseData.testCases.map(tc => ({
+          input: tc.input,
+          output: tc.expectedOutput,
+          score: Math.floor(100 / testCaseData.testCases.length) // 平均分配分数
+        }))
+      } else {
+        throw new Error(response.message || '生成测试用例失败')
+      }
+    }
+    
     step.value = 'preview'
   } catch (error) {
     errorMessage.value = error.message || '生成失败，请稍后重试'

@@ -50,9 +50,9 @@ const navigate = (path: string) => {
         管理员功能
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800" @click="navigate('/workspace/admin/users')">
+        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl" @click="navigate('/workspace/admin/users')">
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-md bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
               <Icon icon="fluent:people-20-filled" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 class="text-lg font-medium">用户管理</h3>
@@ -60,9 +60,9 @@ const navigate = (path: string) => {
           <p class="text-neutral-600 dark:text-neutral-400">管理系统用户、权限和账户设置</p>
         </fluent-card>
 
-        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl">
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-md bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
               <Icon icon="fluent:settings-20-filled" class="w-6 h-6 text-purple-600 dark:text-purple-400" />
             </div>
             <h3 class="text-lg font-medium">系统设置</h3>
@@ -70,9 +70,9 @@ const navigate = (path: string) => {
           <p class="text-neutral-600 dark:text-neutral-400">配置系统参数、安全性和服务选项</p>
         </fluent-card>
 
-        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl">
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-md bg-green-100 dark:bg-green-900 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center">
               <Icon icon="fluent:data-trending-20-filled" class="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <h3 class="text-lg font-medium">系统监控</h3>
@@ -90,11 +90,11 @@ const navigate = (path: string) => {
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <fluent-card v-for="team in userTeams" :key="team.id" 
-          class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800"
+          class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl"
           @click="navigate(`/teams/${team.id}/manage`)" 
           v-show="team.role === '管理员'">
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-md bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
               <Icon icon="fluent:people-team-20-filled" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
@@ -114,9 +114,9 @@ const navigate = (path: string) => {
         创建内容
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800" @click="navigate('/workspace/questions/create')">
+        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl" @click="navigate('/workspace/questions/create')">
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-md bg-green-100 dark:bg-green-900 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center">
               <Icon icon="fluent:book-question-mark-20-filled" class="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <h3 class="text-lg font-medium">创建题目</h3>
@@ -124,9 +124,9 @@ const navigate = (path: string) => {
           <p class="text-neutral-600 dark:text-neutral-400">创建新的编程题目，设置测试用例和难度</p>
         </fluent-card>
 
-        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800" @click="navigate('/workspace/contests/create')">
+        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl" @click="navigate('/workspace/contests/create')">
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-md bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
               <Icon icon="fluent:calendar-add-20-filled" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
             <h3 class="text-lg font-medium">创建比赛</h3>
@@ -134,9 +134,9 @@ const navigate = (path: string) => {
           <p class="text-neutral-600 dark:text-neutral-400">创建编程比赛，设置题目、时间和参与规则</p>
         </fluent-card>
 
-        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800" @click="navigate('/teams/create')">
+        <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl" @click="navigate('/teams/create')">
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-md bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
               <Icon icon="fluent:people-team-add-20-filled" class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             </div>
             <h3 class="text-lg font-medium">创建团队</h3>
@@ -147,7 +147,7 @@ const navigate = (path: string) => {
     </section>
 
     <!-- 最近题目 -->
-    <section class="mb-8 rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+    <section class="mb-8 rounded-2xl border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
       <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
         <Icon icon="fluent:history-20-filled" class="w-5 h-5 text-blue-600" />
         最近做题记录
@@ -190,17 +190,17 @@ const navigate = (path: string) => {
     </section>
 
     <!-- 我的团队 -->
-    <section class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+    <section class="rounded-2xl border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
       <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
         <Icon icon="fluent:people-team-20-filled" class="w-5 h-5 text-cyan-600" />
         我的团队
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <fluent-card v-for="team in userTeams" :key="team.id" 
-          class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800"
+          class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl"
           @click="navigate(`/teams/${team.id}`)">
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-md bg-cyan-100 dark:bg-cyan-900 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900 flex items-center justify-center">
               <Icon icon="fluent:people-team-20-filled" class="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
             </div>
             <div>
@@ -214,7 +214,7 @@ const navigate = (path: string) => {
           <p class="text-neutral-600 dark:text-neutral-400">查看团队活动、比赛和讨论</p>
         </fluent-card>
 
-        <fluent-card class="p-6 border-dashed cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800"
+        <fluent-card class="p-6 border-dashed cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl"
           @click="navigate('/teams/create')">
           <div class="flex flex-col items-center justify-center h-24">
             <Icon icon="fluent:add-circle-20-regular" class="w-12 h-12 text-neutral-400 dark:text-neutral-600 mb-2" />
