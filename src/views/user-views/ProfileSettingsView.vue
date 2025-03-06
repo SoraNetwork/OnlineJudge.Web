@@ -13,7 +13,7 @@ document.title = "Sora Online Judge • 个人资料设置";
 const profileForm = ref({
   nickname: userInfo.value?.nickname || '',
   email: userInfo.value?.email || '',
-  bio: userInfo.value?.bio || '',
+  //bio: userInfo.value?.bio || '',
   avatar: userInfo.value?.avatar || ''
 });
 
@@ -151,7 +151,7 @@ const inputs = ref({
                 />
               </div>
 
-              <div class="flex flex-col gap-2">
+            <!--  <div class="flex flex-col gap-2">
                 <label class="font-medium flex items-center gap-2">
                   <Icon icon="fluent:text-description-20-regular" class="w-5 h-5" />
                   个人简介
@@ -164,7 +164,7 @@ const inputs = ref({
                   resize="vertical"
                   placeholder="写点什么来介绍自己..."
                 />
-              </div>
+              </div>-->
 
               <div class="flex flex-col gap-2">
                 <label class="font-medium flex items-center gap-2">

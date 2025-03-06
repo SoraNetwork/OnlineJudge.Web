@@ -137,7 +137,7 @@ const handleLogout = () => {
             </li>
           </RouterLink>
 
-          <RouterLink to="/workspace"
+          <RouterLink v-show="isLoggedIn" to="/workspace"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
             :class="{ 'bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200': $route.path.startsWith('/workspace') }">
             <li class="flex justify-center items-center gap-1 px-2.5 rounded-sm select-none">
@@ -277,11 +277,18 @@ const handleLogout = () => {
                     <p>竞赛</p>
                   </li>
                 </fluent-tab>
-                <fluent-tab id="group-table"
+                <fluent-tab id="community-table"
                   class="h-8 py-5 aria-selected:bg-neutral-100 dark:aria-selected:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
                   <li class="font-normal flex justify-center items-center gap-2 px-2.5 rounded-sm select-none">
                     <Icon icon="fluent:people-team-24-regular" class="w-5 h-5" />
                     <p>社区</p>
+                  </li>
+                </fluent-tab>
+                <fluent-tab v-show="isLoggedIn" id="workspace-table"
+                  class="h-8 py-5 aria-selected:bg-neutral-100 dark:aria-selected:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
+                  <li class="font-normal flex justify-center items-center gap-2 px-2.5 rounded-sm select-none">
+                    <Icon icon="fluent:resize-table-24-regular" class="w-5 h-5" />
+                    <p>工作台</p>
                   </li>
                 </fluent-tab>
                 <fluent-tab id="not-found-table" class="hidden"> </fluent-tab>

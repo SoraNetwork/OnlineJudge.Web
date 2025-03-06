@@ -1,10 +1,12 @@
-、】、、<script setup lang="ts">
+<script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { useRouter } from "vue-router";
-import { ref, onMounted, reactive, watch } from "vue";
+import { ref, onMounted, reactive, watch, computed } from "vue";
 import RecommendedProblems from "@/components/RecommendedProblems.vue";
 import RecentSubmissions from "@/components/RecentSubmissions.vue";
-import { getQuestions, type Question } from "@/api/question";
+import HyperlinkButton from "@/components/HyperlinkButton.vue";
+import TokenItem from "@/components/TokenItem.vue";
+import { getQuestions, type Question } from "@/api/questionApi";
 document.title = "Sora Online Judge • 问题";
 
 const router = useRouter();
@@ -20,7 +22,7 @@ const queryParams = reactive({
   searchTitle: "",
   tags: [] as string[],
   pageIndex: 1,
-  pageSize: 20,
+  pageSize: 10,  // 减少为10，与RecommendedProblems保持一致
   onlyCreatedByUser: false,
 });
 
@@ -31,7 +33,7 @@ async function loadQuestions() {
   
   try {
     const response = await getQuestions(queryParams);
-    if (response.success) {
+    if (response.success && response.data) {
       questions.value = response.data.items;
       totalCount.value = response.data.totalCount;
     } else {
@@ -63,36 +65,62 @@ function toggleTag(tag: string) {
 }
 
 // 切换页码
-function changePage(page: number) {
-  queryParams.pageIndex = page;
-  loadQuestions();
+function handlePrevPage() {
+  if (queryParams.pageIndex > 1) {
+    queryParams.pageIndex--;
+    loadQuestions();
+  }
 }
+
+function handleNextPage() {
+  if (queryParams.pageIndex < totalPages.value) {
+    queryParams.pageIndex++;
+    loadQuestions();
+  }
+}
+
+// 计算总页数
+const totalPages = computed(() => Math.ceil(totalCount.value / queryParams.pageSize));
 
 // 组件挂载时加载数据
 onMounted(() => {
   loadQuestions();
 });
+
+// 获取难度对应的图标
+function getDifficultyIcon(difficulty: string): string {
+  switch(difficulty) {
+    case '入门': return 'fluent:leaf-one-20-filled';
+    case '简单': return 'fluent:star-20-filled';
+    case '中等': return 'fluent:star-emphasis-24-filled';
+    case '困难': return 'fluent:trophy-20-filled';
+    default: return 'fluent:question-circle-20-regular';
+  }
+}
+
+// 导航到问题详情
+function navigate(questionId: string) {
+  window.scrollTo(0, 0);
+  router.push(`/questions/${questionId}`);
+}
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-6 dark:bg-gray-800">
+  <div class="container mx-auto px-4 py-6">
     <div class="mb-6">
       <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold">题目列表</h1>
-        <div class="flex space-x-2">
-          <input
+        <div class="flex gap-2">
+          <fluent-text-input
             v-model="queryParams.searchTitle"
-            type="text"
             placeholder="搜索题目..."
-            class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+            class="w-64"
             @keyup.enter="searchQuestions"
           />
-          <button
-            @click="searchQuestions"
-            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-600"
-          >
-            <Icon icon="mdi:magnify" class="text-lg" />
-          </button>
+          <fluent-button appearance="outline" class="px-4" @click="searchQuestions">
+            <Icon icon="fluent:search-20-regular" class="w-5 h-5 mr-2" />
+            搜索
+          </fluent-button>
         </div>
       </div>
     </div>
@@ -100,69 +128,90 @@ onMounted(() => {
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- 左侧题目列表 -->
       <div class="lg:col-span-2">
-        <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-4">
+        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold">题目</h2>
+            <div class="flex gap-2">
+              <!-- 这里可以添加筛选按钮等内容 -->
+              <fluent-button appearance="outline" class="px-4" v-if="queryParams.tags.length > 0" @click="queryParams.tags = []; loadQuestions()">
+                <Icon icon="fluent:filter-dismiss-20-regular" class="w-5 h-5 mr-2" />
+                清除筛选
+              </fluent-button>
+            </div>
+          </div>
+          
           <div v-if="loading" class="flex justify-center py-8">
             <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
           
-          <div v-else-if="error" class="text-red-500 text-center py-8">
+          <div v-else-if="error" class="text-red-500 text-center py-8 rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 p-4">
+            <Icon icon="fluent:error-circle-20-regular" class="w-6 h-6 mb-2 mx-auto" />
             {{ error }}
           </div>
           
-          <div v-else-if="questions.length === 0" class="text-center py-8">
-            没有找到题目
+          <div v-else-if="questions.length === 0" class="text-center py-8 rounded-lg border border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800/50 p-4">
+            <Icon icon="fluent:document-search-20-regular" class="w-12 h-12 mb-2 mx-auto text-neutral-500" />
+            <p>没有找到题目</p>
           </div>
           
-          <div v-else>
+          <div v-else class="overflow-x-auto">
             <table class="w-full">
               <thead>
-                <tr class="border-b dark:border-gray-600">
-                  <th class="pb-2 text-left">标题</th>
-                  <th class="pb-2 text-left">创建者</th>
-                  <th class="pb-2 text-left">创建时间</th>
+                <tr class="border-b-1 border-neutral-200 dark:border-neutral-700">
+                  <th class="py-3 text-left">题号</th>
+                  <th class="py-3 text-left">标题</th>
+                  <th class="py-3 text-left">难度</th>
+                  <th class="py-3 text-left">创建者</th>
+                  <th class="py-3 text-left">创建时间</th>
                 </tr>
               </thead>
               <tbody>
                 <tr 
                   v-for="question in questions" 
                   :key="question.id"
-                  class="border-b last:border-b-0 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
-                  @click="router.push(`/questions/${question.id}`)"
+                  class="border-b-1 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors"
                 >
-                  <td class="py-3">
-                    <div class="font-medium">{{ question.title }}</div>
-                    <div class="flex mt-1 space-x-2">
-                      <span 
-                        v-for="tag in question.tags" 
-                        :key="tag"
-                        class="text-xs px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full"
-                        @click.stop="toggleTag(tag)"
-                      >
-                        {{ tag }}
+                  <td class="py-4">{{ question.id }}</td>
+                  <td class="py-4">
+                    <div>
+                      <span class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                        @click="navigate(question.id)">
+                        {{ question.title }}
                       </span>
+                      <div class="flex mt-1 flex-wrap gap-1">
+                        <span 
+                          v-for="tag in question.tags" 
+                          :key="tag"
+                          class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full cursor-pointer"
+                          @click.stop="toggleTag(tag)"
+                        >
+                          {{ tag }}
+                        </span>
+                      </div>
                     </div>
                   </td>
-                  <td class="py-3">{{ question.creatorName }}</td>
-                  <td class="py-3">{{ new Date(question.createTime).toLocaleDateString() }}</td>
+                  <td class="py-4">
+                    <TokenItem :Token="question.difficulty || '未知'" :Glyph="getDifficultyIcon(question.difficulty)" />
+                  </td>
+                  <td class="py-4">{{ question.creatorName }}</td>
+                  <td class="py-4">{{ new Date(question.createTime).toLocaleDateString() }}</td>
                 </tr>
               </tbody>
             </table>
             
-            <!-- 分页 -->
-            <div class="flex justify-center mt-6">
-              <div class="flex space-x-1">
-                <button
-                  v-for="page in Math.ceil(totalCount / queryParams.pageSize)"
-                  :key="page"
-                  @click="changePage(page)"
-                  class="px-3 py-1 rounded"
-                  :class="{
-                    'bg-blue-500 text-white': queryParams.pageIndex === page,
-                    'bg-gray-200 dark:bg-gray-600': queryParams.pageIndex !== page
-                  }"
-                >
-                  {{ page }}
-                </button>
+            <!-- 分页控件 -->
+            <div class="flex justify-between items-center mt-4">
+              <span class="text-sm text-neutral-600 dark:text-neutral-400">
+                共 {{ totalCount }} 题
+              </span>
+              <div class="flex gap-2">
+                <fluent-button appearance="outline" @click="handlePrevPage" :disabled="queryParams.pageIndex === 1">
+                  上一页
+                </fluent-button>
+                <span class="flex items-center mx-2">{{ queryParams.pageIndex }} / {{ totalPages }}</span>
+                <fluent-button appearance="outline" @click="handleNextPage" :disabled="queryParams.pageIndex === totalPages">
+                  下一页
+                </fluent-button>
               </div>
             </div>
           </div>
@@ -176,4 +225,14 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+fluent-text-input {
+  --background-color: var(--fill-color);
+}
+
+table th {
+  font-weight: 600;
+}
+</style>
 

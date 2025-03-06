@@ -11,7 +11,8 @@ import math from '@bytemd/plugin-math'
 import zhHans from 'bytemd/lib/locales/zh_Hans.json'
 import 'bytemd/dist/index.css'
 import AIServiceDialog from '@/components/AIServiceDialog.vue'
-import { createQuestion, generateQuestionByAI, generateTestcasesByAI } from '@/api/question'
+import { createQuestion, generateQuestionByAI, generateTestcasesByAI } from '@/api/questionApi'
+import { message } from '@/services/MessageService' // 导入消息服务
 
 const router = useRouter()
 
@@ -88,18 +89,41 @@ const removeTag = (index) => {
   problem.value.tags.splice(index, 1)
 }
 
-// 删除 addSampleCase 和 removeSampleCase 方法
-
 const addTestCase = () => {
   problem.value.testCases.push({ input: '', output: '', score: 10 })
+  message.info('已添加一个新测试点')
 }
 
 const removeTestCase = (index) => {
   problem.value.testCases.splice(index, 1)
+  message.info('已删除测试点')
 }
 
 const handleSubmit = async () => {
   try {
+    // 表单验证
+    if (!problem.value.title) {
+      message.error('请输入题目标题')
+      return
+    }
+    
+    if (!problem.value.content) {
+      message.error('请输入题目描述')
+      return
+    }
+    
+    if (problem.value.testCases.length === 0) {
+      message.error('请至少添加一个测试点')
+      return
+    }
+    
+    // 检查测试点是否都已填写
+    const emptyTestCase = problem.value.testCases.find(tc => !tc.input || !tc.output)
+    if (emptyTestCase) {
+      message.error('所有测试点的输入和输出不能为空')
+      return
+    }
+    
     // 将表单数据转换为API请求格式
     const request = {
       languageCode: 'markdown', // 假设默认使用markdown
@@ -118,14 +142,14 @@ const handleSubmit = async () => {
     const response = await createQuestion(request)
     
     if (response.success) {
-      alert('题目创建成功！')
+      message.success('题目创建成功！')
       router.push('/questions')
     } else {
-      alert(`创建失败: ${response.message || '未知错误'}`)
+      message.error(`创建失败: ${response.message || '未知错误'}`)
     }
   } catch (error) {
     console.error('提交题目时出错:', error)
-    alert(`创建失败: ${error.message || '未知错误'}`)
+    message.error(`创建失败: ${error.message || '未知错误'}`)
   }
 }
 
@@ -143,29 +167,37 @@ const aiDialogTitle = ref('')
 // 使用AI生成题目描述
 const handleAIProblem = async (prompt) => {
   try {
+    message.info('AI 正在生成题目描述...')
+    
     const response = await generateQuestionByAI({
       description: prompt
     })
     
     if (response.success) {
+      message.success('AI 已生成题目描述')
       return response.data
     } else {
       throw new Error(response.message || '生成题目描述失败')
     }
   } catch (error) {
     console.error('生成题目失败:', error)
-    throw new Error('生成题目失败，请稍后重试')
+    message.error('生成题目失败，请稍后重试')
+    throw error
   }
 }
 
 // 确认使用生成的题目描述
 const handleConfirmProblem = (content) => {
   problem.value.content = content
+  message.success('已应用 AI 生成的题目描述')
 }
 
 // 使用AI生成测试点
 const handleAITestCase = async (prompt) => {
   try {
+    // 显示加载消息
+    message.info('AI 正在生成测试用例...')
+    
     // 调用AI生成测试用例API
     const response = await generateTestcasesByAI({
       title: problem.value.title,
@@ -174,6 +206,7 @@ const handleAITestCase = async (prompt) => {
     })
     
     if (response.success) {
+      message.success('AI 已生成测试用例')
       // 解析返回的JSON字符串
       const testCaseData = JSON.parse(response.data)
       
@@ -188,13 +221,15 @@ const handleAITestCase = async (prompt) => {
     }
   } catch (error) {
     console.error('生成测试点失败:', error)
-    throw new Error('生成测试点失败，请稍后重试')
+    message.error('生成测试点失败，请稍后重试')
+    throw error
   }
 }
 
 // 确认使用生成的测试点
 const handleConfirmTestCase = (testCases) => {
   problem.value.testCases.push(...testCases)
+  message.success(`已添加 ${testCases.length} 个测试点`)
 }
 
 // 显示 AI 题目生成对话框
@@ -206,13 +241,20 @@ const showAIProblemDialog = () => {
 // 显示 AI 测试点生成对话框
 const showAITestCaseDialog = () => {
   aiDialogTitle.value = 'AI 生成测试点'
-  aiTestCaseDialog.value?.show()
+  // 传递题目标题和内容给对话框组件
+  aiTestCaseDialog.value?.show({
+    title: problem.value.title,
+    description: problem.value.content
+  })
 }
 
 // 自动分配测试点分数
 const autoDistributeScores = () => {
   const testCount = problem.value.testCases.length
-  if (testCount === 0) return
+  if (testCount === 0) {
+    message.warning('没有测试点可以分配分数')
+    return
+  }
   
   const baseScore = Math.floor(100 / testCount)
   const remainder = 100 - (baseScore * testCount)
@@ -223,6 +265,8 @@ const autoDistributeScores = () => {
       ? baseScore + remainder 
       : baseScore
   })
+  
+  message.success('已均分配分，总分为100分')
 }
 
 // 添加菜单状态控制

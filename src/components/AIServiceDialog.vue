@@ -9,7 +9,7 @@ import highlight from '@bytemd/plugin-highlight'
 import math from '@bytemd/plugin-math'
 import zhHans from 'bytemd/lib/locales/zh_Hans.json'
 // 替换模拟数据导入为实际API导入
-import { generateQuestionByAI, generateTestcasesByAI } from '@/api/question'
+import { generateQuestionByAI, generateTestcasesByAI } from '@/api/questionApi'
 
 const dialog = ref(null)
 
@@ -40,11 +40,21 @@ const isLoading = ref(false)
 const previewData = ref(null)
 const errorMessage = ref('')
 const customTestcaseCount = ref(props.testcaseCount)
+// 添加长时间等待警告状态
+const showWaitingWarning = ref(false)
+const waitingTimer = ref(null)
+// 存储题目信息
+const problemTitle = ref('')
+const problemDescription = ref('')
 
-// 显示对话框
-const show = () => {
+// 显示对话框 - 接收额外参数
+const show = (data = {}) => {
     dialog.value?.show()
     reset()
+    
+    // 保存传递的题目信息
+    if (data.title) problemTitle.value = data.title
+    if (data.description) problemDescription.value = data.description
 }
 
 // 重置状态
@@ -55,6 +65,14 @@ const reset = () => {
     isLoading.value = false
     errorMessage.value = ''
     customTestcaseCount.value = props.testcaseCount
+    showWaitingWarning.value = false
+    problemTitle.value = ''
+    problemDescription.value = ''
+    // 确保清除计时器
+    if (waitingTimer.value) {
+        clearTimeout(waitingTimer.value)
+        waitingTimer.value = null
+    }
 }
 
 // 隐藏对话框
@@ -71,6 +89,11 @@ const handleSubmit = async () => {
     isLoading.value = true
     clearError()
     
+    // 设置计时器，10秒后显示等待警告
+    waitingTimer.value = setTimeout(() => {
+      showWaitingWarning.value = true
+    }, 10000)
+    
     let response
     
     if (props.mode === 'problem') {
@@ -82,42 +105,78 @@ const handleSubmit = async () => {
       if (response.success) {
         previewData.value = response.data
       } else {
-        throw new Error(response.message || '生成题目描述失败')
+        // 更清晰地指明是 AI 生成失败，而非系统错误
+        throw new Error(response.message || 'AI生成题目描述失败，请调整描述后再次尝试')
       }
     } else {
-      // 调用生成测试用例API
+      // 构建完整的描述信息
+      const fullDescription = `
+题目标题: ${problemTitle.value}
+
+题目描述:
+${problemDescription.value}
+
+测试点要求:
+${prompt.value}
+      `.trim()
+      
+      // 调用生成测试用例API，传入完整描述
       response = await generateTestcasesByAI({
-        title: '', // 父组件可能需要传入这个值
-        description: prompt.value,
+        title: problemTitle.value,
+        description: fullDescription,
         testCaseCount: customTestcaseCount.value
       })
       
       if (response.success) {
-        // 解析返回的JSON字符串
-        const testCaseData = JSON.parse(response.data)
-        
-        // 将API返回的数据转换为组件需要的格式
-        previewData.value = testCaseData.testCases.map(tc => ({
-          input: tc.input,
-          output: tc.expectedOutput,
-          score: Math.floor(100 / testCaseData.testCases.length) // 平均分配分数
-        }))
+        try {
+          // 解析返回的JSON字符串
+          const testCaseData = JSON.parse(response.data)
+          
+          // 将API返回的数据转换为组件需要的格式
+          previewData.value = testCaseData.testCases.map(tc => ({
+            input: tc.input,
+            output: tc.expectedOutput,
+            score: Math.floor(100 / testCaseData.testCases.length) // 平均分配分数
+          }))
+        } catch (jsonError) {
+          // 专门处理JSON解析错误
+          throw new Error('AI生成的数据格式不规范，请重新尝试或调整描述')
+        }
       } else {
-        throw new Error(response.message || '生成测试用例失败')
+        // 更清晰地指明是 AI 生成失败，而非系统错误
+        throw new Error(response.message || 'AI生成测试用例失败，请调整描述后再次尝试')
       }
     }
     
     step.value = 'preview'
   } catch (error) {
-    errorMessage.value = error.message || '生成失败，请稍后重试'
+    // 区分错误类型
+    if (error.name === 'SyntaxError' && error.message.includes('JSON')) {
+      errorMessage.value = 'AI生成的数据格式不规范，请重新尝试或调整描述'
+    } else if (error.response && error.response.status === 400) {
+      errorMessage.value = 'AI生成失败，请调整提示词后再次尝试'
+    } else {
+      errorMessage.value = error.message || '服务暂时不可用，请稍后重试'
+    }
   } finally {
     isLoading.value = false
+    // 清除等待警告和计时器
+    showWaitingWarning.value = false
+    if (waitingTimer.value) {
+      clearTimeout(waitingTimer.value)
+      waitingTimer.value = null
+    }
   }
 }
 
 // 关闭错误提示
 const clearError = () => {
   errorMessage.value = ''
+}
+
+// 关闭警告提示
+const clearWarning = () => {
+  showWaitingWarning.value = false
 }
 
 // 处理确认
@@ -165,8 +224,23 @@ defineExpose({
         @close="clearError"
       />
 
+      <!-- 长时间等待警告 -->
+      <AlertMessage
+        v-if="showWaitingWarning && isLoading"
+        type="warning"
+        message="DeepSeek正在思考中，请稍等片刻，这可能需要亿点时间..."
+        class="mb-4"
+        @close="clearWarning"
+      />
+
       <!-- 输入界面 -->
       <div v-if="step === 'input'" class="space-y-4">
+        <!-- 显示当前题目信息 (仅在测试点模式下) -->
+        <div v-if="mode === 'testcase' && problemDescription" class="space-y-2">
+          <div v-if="problemTitle" class="font-medium mb-1">当前题目: {{ problemTitle }}</div>
+          <div class="text-xs text-neutral-600 dark:text-neutral-400 mb-2">AI将根据当前题目描述生成合适的测试点</div>
+        </div>
+
         <div class="space-y-2">
           <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
             {{ mode === 'problem' ? '请描述您想要生成的题目类型或特点' : '请描述您想要生成的测试数据特点' }}

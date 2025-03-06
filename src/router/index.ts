@@ -30,6 +30,7 @@ import WorkspaceView from "@/views/workspace-views/WorkspaceView.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // 主要页面
     {
       path: "/",
       name: "home",
@@ -41,23 +42,47 @@ const router = createRouter({
       component: ProjectsView,
     },
     {
+      path: "/privacy",
+      name: "privacy",
+      component: PrivacyView,
+    },
+
+    // 问题相关页面
+    {
       path: "/questions",
       name: "questions",
       component: QuestionsView,
     },
     {
-      path:"/workspace/questions/create",
-      name:"createquestion",
-      component: CreateProblemView,
+      path: '/questions/:id/:fromcontestid?',
+      name: 'question',
+      component: ProblemView,
     },
     {
-      path:"/community",
-      name:"Community",
+      path: '/questions/:id/submit',
+      name: 'submit',
+      component: SubmitView,
+    },
+    {
+      path: '/questions/status/:id',
+      name: 'status',
+      component: StatusView,
+    },
+    {
+      path: '/questions/status/detail/:id',
+      name: 'status-detail',
+      component: StatusDetailView,
+    },
+
+    // 社区相关页面
+    {
+      path: "/community",
+      name: "Community",
       component: CommunityView,
     },
     {
-      path:'/community/create-post',
-      name:"CreatePost",
+      path: '/community/create-post',
+      name: "CreatePost",
       component: CreatePostView,
     },
     {
@@ -66,41 +91,29 @@ const router = createRouter({
       component: PostDetailView,
     },
     {
-      path:"/contests",
-      name:"contests",
+      path: "/teams",
+      name: "teams",
+      component: TeamsView,
+    },
+    {
+      path: "/teams/:id",
+      name: "team-detail",
+      component: TeamDetailView,
+    },
+
+    // 竞赛相关页面
+    {
+      path: "/contests",
+      name: "contests",
       component: ContestsView,
     },
     {
-      path:"/workspace/contests/create",
-      name:"createcontest",
-      component: CreateContestView,
-    },
-    {
-      path:"/contests/:id",
-      name:'contest',
+      path: "/contests/:id",
+      name: 'contest',
       component: ContestView,
     },
-    {
-      path: "/privacy",
-      name: "privacy",
-      component: PrivacyView,
-    },
-    {
-      path: "/profile/:username?",
-      name: "profile",
-      component: ProfileView,
-      props: true,
-    },
-    {
-      path: "/not-found",
-      name: "not-found",
-      component: NotFoundView,
-    },
-    {
-      path: "/under-construction",
-      name: "under-construction",
-      component: UnderConstructionView,
-    },
+
+    // 用户相关页面
     {
       path: "/login",
       name: "login",
@@ -113,34 +126,10 @@ const router = createRouter({
       component: RegisterView,
     },
     {
-      path: '/questions/:id/:fromcontestid?',
-      name: 'question',
-      component: ProblemView,
-    },
-    {
-      path: '/questions/status/:id',
-      name: 'status',
-      component: StatusView,
-    },
-    {
-      path: '/questions/status/detail/:id',
-      name: 'status-detail',
-      component: StatusDetailView,
-    },
-    {
-      path: '/questions/:id/submit',
-      name: 'submit',
-      component: SubmitView,
-    },
-    {
-      path: "/teams",
-      name: "teams",
-      component: TeamsView,
-    },
-    {
-      path: "/teams/:id",
-      name: "team-detail",
-      component: TeamDetailView,
+      path: "/profile/:username?",
+      name: "profile",
+      component: ProfileView,
+      props: true,
     },
     {
       path: "/profile/settings",
@@ -148,12 +137,8 @@ const router = createRouter({
       component: ProfileSettingsView,
       meta: { requiresAuth: true }  
     },
-    {
-      path: "/workspace/admin/users",
-      name: "user-management",
-      component: UserManagement,
-      meta: { requiresAuth: true }
-    },
+
+    // 工作区相关页面
     {
       path: "/workspace",
       name: "workspace",
@@ -161,10 +146,37 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: "/workspace/questions/create",
+      name: "createquestion",
+      component: CreateProblemView,
+    },
+    {
+      path: "/workspace/contests/create",
+      name: "createcontest",
+      component: CreateContestView,
+    },
+    {
+      path: "/workspace/admin/users",
+      name: "user-management",
+      component: UserManagement,
+      meta: { requiresAuth: true }
+    },
+
+    // 错误和其他页面
+    {
+      path: "/not-found",
+      name: "not-found",
+      component: NotFoundView,
+    },
+    {
+      path: "/under-construction",
+      name: "under-construction",
+      component: UnderConstructionView,
+    },
+    {
       path: "/:pathMatch(.*)*",
       redirect: "/not-found",
     },
-
   ],
 });
 

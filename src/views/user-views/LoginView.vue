@@ -4,6 +4,7 @@ import { useRouter, useRoute } from "vue-router";
 import { Icon } from "@iconify/vue";
 import { setLoginState } from '@/stores/userStore';
 import { loginUser } from "@/api/userApi";
+import { message } from "@/services/MessageService";
 
 const router = useRouter();
 const route = useRoute();
@@ -13,7 +14,7 @@ const loginForm = ref({
   password: "",
 });
 
-const errorMessage = ref("");
+// 移除错误消息变量，改用全局消息服务
 const isLoading = ref(false);
 
 // SHA-256 加密函数
@@ -27,14 +28,14 @@ async function sha256(message: string): Promise<string> {
 
 const handleLogin = async () => {
   if (!loginForm.value.username || !loginForm.value.password) {
-    errorMessage.value = "请填写用户名和密码";
+    // 使用消息服务显示错误
+    message.error("请填写用户名和密码");
     return;
   }
 
   try {
     isLoading.value = true;
-    errorMessage.value = "";
-
+    
     // 对密码进行SHA-256哈希
     const passwordHash = await sha256(loginForm.value.password);
 
@@ -64,20 +65,25 @@ const handleLogin = async () => {
         id: userProfile.id,
         username: userProfile.username,
         nickname: userProfile.nickname,
-        permissions: userProfile.permissions, // 使用上面设置的权限
+        permissions: userProfile.permissions,
         rating: userProfile.rating,
         solved: userProfile.solved,
         ranking: userProfile.ranking
       });
 
+      // 使用消息服务显示成功消息
+      message.success(`欢迎回来，${userProfile.nickname || userProfile.username}！`);
+
       // 获取重定向地址或默认返回主页
       const redirect = route.query.redirect as string || "/";
       router.replace(redirect);
     } else {
-      errorMessage.value = response.message || "登录失败";
+      // 使用消息服务显示错误
+      message.error(response.message || "登录失败");
     }
   } catch (error) {
-    errorMessage.value = "登录时发生错误，请稍后重试";
+    // 使用消息服务显示错误
+    message.error("登录时发生错误，请稍后重试");
     console.error("登录错误:", error);
   } finally {
     isLoading.value = false;
@@ -134,10 +140,7 @@ const handleLogin = async () => {
             </div>
           </div>
 
-          <!-- 错误提示 -->
-          <div v-if="errorMessage" class="text-red-500 text-sm text-center">
-            {{ errorMessage }}
-          </div>
+          <!-- 移除静态错误提示区域，改用全局消息服务 -->
 
           <!-- 登录按钮 -->
           <fluent-button 

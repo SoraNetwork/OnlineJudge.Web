@@ -3,7 +3,7 @@
 import { Editor } from '@bytemd/vue-next'
 import { Viewer } from '@bytemd/vue-next'
 import 'bytemd/dist/index.css'
-import {  ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import TokenItem from '@/components/TokenItem.vue'
@@ -15,75 +15,32 @@ import frontmatter from '@bytemd/plugin-frontmatter'
 import math from '@bytemd/plugin-math'
 import zhHans from 'bytemd/lib/locales/zh_Hans.json'
 import RecentSubmissions from '@/components/RecentSubmissions.vue'
-
+import { getQuestionById } from '@/api/questionApi'
 
 const route = useRoute();
 const problemId = route.params.id;
 
 const problem = ref({
-  id: 'P1001',
-  title: 'A + B Problem',
-  difficulty: '入门',
-  timeLimit: 1000,
-  memoryLimit: 256,
-  tags: ['数学', '模拟'],
-  acceptance: '95%',
+  id: '',
+  title: '',
+  difficulty: '',
+  timeLimit: 0,
+  memoryLimit: 0,
+  tags: [],
+  acceptance: '',
   author: {
-    username: 'admin',
-    nickname: '管理员',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin'
+    username: '',
+    nickname: '',
+    avatar: ''
   },
-  createTime: '2024-01-20 12:30:45',
-  content: `## 问题描述
-
----
-
-给定两个整数 A 和 B，请你计算它们的和。
-
-## 输入格式
-
----
-
-输入包含一行，包含两个整数 A 和 B。
-
-## 输出格式
-
----
-
-输出一行，包含一个整数，表示 A + B 的值。
-
-## 样例输入
-
----
-
-\`\`\`
-1 2
-\`\`\`
-
-## 样例输出
-
----
-
-\`\`\`
-3
-\`\`\`
-
-## 数据范围
-
----
-
-- 1 ≤ A, B ≤ 1000
-
-## 提示
-
----
-
-这是一个简单的入门题目，帮助你熟悉提交程序的流程。`
+  createTime: '',
+  content: ''
 });
 
 const isEditing = ref(false);
 const editedContent = ref('');
 const isLoading = ref(true);
+const errorMessage = ref('');
 
 // 修改提交记录数据结构
 const submissions = ref({
@@ -119,9 +76,35 @@ const displaySubmissions = computed(() => {
 
 onMounted(async () => {
   try {
-    // 模拟API加载
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    editedContent.value = problem.value.content;
+    isLoading.value = true;
+    errorMessage.value = '';
+    
+    const response = await getQuestionById(problemId);
+    if (response.success && response.data) {
+      const questionData = response.data;
+      problem.value = {
+        id: questionData.id,
+        title: questionData.title,
+        difficulty: questionData.difficulty || '未知',
+        timeLimit: questionData.timeLimit || 1000,
+        memoryLimit: questionData.memoryLimit || 256,
+        tags: questionData.tags || [],
+        acceptance: questionData.acceptance || '0%',
+        author: {
+          username: questionData.createdBy || 'anonymous',
+          nickname: questionData.authorNickname || '匿名用户',
+          avatar: questionData.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${questionData.createdBy || 'anonymous'}`
+        },
+        createTime: questionData.createdAt || '',
+        content: questionData.description || ''
+      };
+      editedContent.value = questionData.description;
+    } else {
+      errorMessage.value = response.message || '获取问题数据失败';
+    }
+  } catch (error) {
+    console.error('获取问题详情出错:', error);
+    errorMessage.value = '获取问题数据时发生错误，请稍后再试';
   } finally {
     isLoading.value = false;
   }
@@ -153,8 +136,16 @@ const handleBack = () => {
 <template>
   <div class="bg-white dark:bg-neutral-900">
     <div class="container mx-auto px-4 py-6">
-      <div v-if="isLoading" class="flex justify-center min-h-[200px] w-full">
+      <div v-if="isLoading" class="flex justify-center min-h-[200px] w-full items-center">
         <fluent-progress-bar indeterminate></fluent-progress-bar>
+      </div>
+      
+      <div v-else-if="errorMessage" class="flex flex-col items-center justify-center min-h-[200px] w-full">
+        <Icon icon="fluent:error-circle-20-filled" class="w-12 h-12 text-red-500 mb-4" />
+        <p class="text-lg text-red-500">{{ errorMessage }}</p>
+        <fluent-button appearance="accent" class="mt-4" @click="handleBack">
+          返回问题列表
+        </fluent-button>
       </div>
       
       <template v-else>
@@ -245,7 +236,6 @@ const handleBack = () => {
     </div>
   </div>
 </template>
-
 
 <script lang="js">
 const plugins=[

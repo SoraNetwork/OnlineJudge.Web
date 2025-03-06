@@ -2,6 +2,7 @@
 import { RouterView } from "vue-router";
 import PageHeader from "./components/PageHeader.vue";
 import PageFooter from "./components/PageFooter.vue";
+import MessageContainer from "./components/MessageContainer.vue";
 
 import "@fluentui/web-components/button.js";
 import { initThemeService } from "./services/ThemeService";
@@ -74,5 +75,7 @@ initThemeService(document.documentElement);
     <div class="fixed" style="width: 100%">
       <PageHeader />
     </div>
+    <!-- 添加全局消息容器 -->
+    <MessageContainer />
   </main>
 </template>

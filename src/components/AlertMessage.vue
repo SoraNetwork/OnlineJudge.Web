@@ -1,5 +1,6 @@
 <script setup lang='ts'>
 import { Icon } from '@iconify/vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 
 type AlertType = 'error' | 'warning' | 'info' | 'success'
 
@@ -12,6 +13,14 @@ const props = defineProps({
   message: {
     type: String,
     required: true
+  },
+  duration: {
+    type: Number,
+    default: 3000
+  },
+  onClose: {
+    type: Function,
+    default: () => {}
   }
 })
 
@@ -35,17 +44,36 @@ const typeConfig: Record<AlertType, { icon: string; class: string }> = {
     class: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800'
   }
 }
+
+const handleClose = () => {
+  emit('close')
+  props.onClose()
+}
+
+// 如果设置了持续时间，则自动关闭
+let timer: number | undefined
+onMounted(() => {
+  if (props.duration > 0) {
+    timer = window.setTimeout(() => {
+      handleClose()
+    }, props.duration)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (timer) clearTimeout(timer)
+})
 </script>
 
 <template>
   <div 
-    class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-all"
+    class="flex items-center gap-3 px-4 py-3 rounded-lg border shadow-md transition-all"
     :class="typeConfig[type].class"
   >
     <Icon :icon="typeConfig[type].icon" class="w-5 h-5 flex-shrink-0" />
     <span class="flex-grow text-sm">{{ message }}</span>
     <button 
-      @click="emit('close')"
+      @click="handleClose"
       class="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
     >
       <Icon icon="fluent:dismiss-20-regular" class="w-4 h-4" />

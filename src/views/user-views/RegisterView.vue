@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { setLoginState } from "@/stores/userStore";
 import { registerUser } from "@/api/userApi";
+import { message } from "@/services/MessageService"; // 导入消息服务
 
 document.title = "Sora Online Judge • 注册";
 
@@ -20,8 +21,8 @@ const formData = ref({
   realName: "",
 });
 
-// 错误信息
-const errorMsg = ref("");
+// 移除静态错误消息变量，改用消息服务
+// const errorMsg = ref("");
 
 // 表单验证规则
 const validationRules = {
@@ -60,32 +61,29 @@ const validateField = (field: keyof typeof validationRules, value: string): stri
 
 // 注册处理
 const handleRegister = async () => {
-  // 重置错误信息
-  errorMsg.value = "";
-
   // 验证必填字段
   if (!formData.value.username || !formData.value.password) {
-    errorMsg.value = "用户名和密码不能为空";
+    message.error("用户名和密码不能为空");
     return;
   }
 
   // 验证用户名
   const usernameError = validateField("username", formData.value.username);
   if (usernameError) {
-    errorMsg.value = usernameError;
+    message.error(usernameError);
     return;
   }
 
   // 验证密码
   const passwordError = validateField("password", formData.value.password);
   if (passwordError) {
-    errorMsg.value = passwordError;
+    message.error(passwordError);
     return;
   }
 
   // 验证密码确认
   if (formData.value.password !== formData.value.confirmPassword) {
-    errorMsg.value = "两次输入的密码不一致";
+    message.error("两次输入的密码不一致");
     return;
   }
 
@@ -93,7 +91,7 @@ const handleRegister = async () => {
   if (formData.value.email) {
     const emailError = validateField("email", formData.value.email);
     if (emailError) {
-      errorMsg.value = emailError;
+      message.error(emailError);
       return;
     }
   }
@@ -101,7 +99,7 @@ const handleRegister = async () => {
   if (formData.value.phone) {
     const phoneError = validateField("phone", formData.value.phone);
     if (phoneError) {
-      errorMsg.value = phoneError;
+      message.error(phoneError);
       return;
     }
   }
@@ -109,7 +107,7 @@ const handleRegister = async () => {
   if (formData.value.nickname) {
     const nicknameError = validateField("nickname", formData.value.nickname);
     if (nicknameError) {
-      errorMsg.value = nicknameError;
+      message.error(nicknameError);
       return;
     }
   }
@@ -141,12 +139,14 @@ const handleRegister = async () => {
         ranking: userProfile.ranking,
       });
       
+      // 显示注册成功消息
+      message.success(`账号注册成功，欢迎 ${userProfile.nickname || userProfile.username}！`);
       router.push("/");
     } else {
-      errorMsg.value = response.message || "注册失败";
+      message.error(response.message || "注册失败");
     }
   } catch (error) {
-    errorMsg.value = "注册过程中发生错误";
+    message.error("注册过程中发生错误");
     console.error(error);
   }
 };
@@ -217,8 +217,8 @@ const handleRegister = async () => {
           />
         </div>
 
-        <!-- 错误信息显示 -->
-        <p v-if="errorMsg" class="text-red-500 text-sm mt-2">{{ errorMsg }}</p>
+        <!-- 移除静态错误信息显示 -->
+        <!-- <p v-if="errorMsg" class="text-red-500 text-sm mt-2">{{ errorMsg }}</p> -->
 
         <!-- 提交按钮 -->
         <fluent-button
