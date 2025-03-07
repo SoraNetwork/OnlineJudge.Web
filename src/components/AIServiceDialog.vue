@@ -43,6 +43,9 @@ const customTestcaseCount = ref(props.testcaseCount)
 // 添加长时间等待警告状态
 const showWaitingWarning = ref(false)
 const waitingTimer = ref(null)
+// 添加超时警告状态
+const showTimeoutWarning = ref(false)
+const timeoutTimer = ref(null)
 // 存储题目信息
 const problemTitle = ref('')
 const problemDescription = ref('')
@@ -66,12 +69,17 @@ const reset = () => {
     errorMessage.value = ''
     customTestcaseCount.value = props.testcaseCount
     showWaitingWarning.value = false
+    showTimeoutWarning.value = false
     problemTitle.value = ''
     problemDescription.value = ''
     // 确保清除计时器
     if (waitingTimer.value) {
         clearTimeout(waitingTimer.value)
         waitingTimer.value = null
+    }
+    if (timeoutTimer.value) {
+        clearTimeout(timeoutTimer.value)
+        timeoutTimer.value = null
     }
 }
 
@@ -93,6 +101,11 @@ const handleSubmit = async () => {
     waitingTimer.value = setTimeout(() => {
       showWaitingWarning.value = true
     }, 10000)
+    
+    // 设置两分钟超时警告计时器
+    timeoutTimer.value = setTimeout(() => {
+      showTimeoutWarning.value = true
+    }, 120000)
     
     let response
     
@@ -162,9 +175,14 @@ ${prompt.value}
     isLoading.value = false
     // 清除等待警告和计时器
     showWaitingWarning.value = false
+    showTimeoutWarning.value = false
     if (waitingTimer.value) {
       clearTimeout(waitingTimer.value)
       waitingTimer.value = null
+    }
+    if (timeoutTimer.value) {
+      clearTimeout(timeoutTimer.value)
+      timeoutTimer.value = null
     }
   }
 }
@@ -177,6 +195,11 @@ const clearError = () => {
 // 关闭警告提示
 const clearWarning = () => {
   showWaitingWarning.value = false
+}
+
+// 关闭超时警告提示
+const clearTimeoutWarning = () => {
+  showTimeoutWarning.value = false
 }
 
 // 处理确认
@@ -226,11 +249,22 @@ defineExpose({
 
       <!-- 长时间等待警告 -->
       <AlertMessage
-        v-if="showWaitingWarning && isLoading"
+        :duration="0"
+        v-if="showWaitingWarning && isLoading && !showTimeoutWarning"
         type="warning"
-        message="DeepSeek正在思考中，请稍等片刻，这可能需要亿点时间..."
+        message="DeepSeek正在深度求索中，请稍等片刻，这可能需要亿点时间..."
         class="mb-4"
         @close="clearWarning"
+      />
+      
+      <!-- 超时警告 -->
+      <AlertMessage
+        :duration="0"
+        v-if="showTimeoutWarning && isLoading"
+        type="error"
+        message="deepseek似乎已经深度求索很久了，可能是难度太高了，建议更换后再试。或者你也可以试试一直等下去呢？"
+        class="mb-4"
+        @close="clearTimeoutWarning"
       />
 
       <!-- 输入界面 -->
@@ -366,7 +400,7 @@ defineExpose({
             data-nimg="1" 
             class="w-25 h-5" 
             style="color:transparent" 
-            src="https://www.deepseek.com/_next/image?url=https%3A%2F%2Fcdn.deepseek.com%2Flogo.png&amp;w=1920&amp;q=75"
+            src="/deepseek.webp"
           />
           <span>提供支持</span>
           <span class="mx-2">·</span>

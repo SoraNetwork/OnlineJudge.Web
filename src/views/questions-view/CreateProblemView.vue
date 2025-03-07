@@ -126,7 +126,7 @@ const handleSubmit = async () => {
     
     // 将表单数据转换为API请求格式
     const request = {
-      languageCode: 'markdown', // 假设默认使用markdown
+      difficulty: problem.value.difficulty,
       title: problem.value.title,
       description: problem.value.content,
       checkpoints: problem.value.testCases.map(testCase => ({

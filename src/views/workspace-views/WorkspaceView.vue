@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
 import { userInfo, hasPermission } from '@/stores/userStore';
+import RecentActivities from '@/components/RecentActivities.vue';
 
 document.title = "Sora Online Judge • 工作台";
 
@@ -13,10 +14,43 @@ const isAdminUser = ref(false);
 const isTeamManagerUser = ref(false);
 
 // 模拟数据，实际使用时应该从API获取
-const recentProblems = ref([
-  { id: 'P1001', title: 'A + B Problem', difficulty: '入门', lastVisited: '2024-01-15' },
-  { id: 'P1002', title: '过河卒', difficulty: '简单', lastVisited: '2024-01-14' },
-  { id: 'P1003', title: '铺地毯', difficulty: '中等', lastVisited: '2024-01-13' }
+const recentActivities = ref([
+  { 
+    id: '1', 
+    type: '做题', 
+    title: 'A + B Problem', 
+    target: 'P1001', 
+    targetId: 'P1001',
+    result: '通过', 
+    time: '2024-01-15 14:30' 
+  },
+  { 
+    id: '2', 
+    type: '比赛', 
+    title: '周末算法竞赛', 
+    target: '周末算法竞赛', 
+    targetId: 'C1002',
+    result: '参与', 
+    time: '2024-01-14 10:00' 
+  },
+  { 
+    id: '3', 
+    type: '提交', 
+    title: '铺地毯', 
+    target: 'P1003', 
+    targetId: 'P1003',
+    result: '未通过', 
+    time: '2024-01-13 16:45' 
+  },
+  { 
+    id: '4', 
+    type: '讨论', 
+    title: '如何优化动态规划解法', 
+    target: 'DP优化技巧', 
+    targetId: 'D1001',
+    result: '发布', 
+    time: '2024-01-12 09:15' 
+  }
 ]);
 
 const userTeams = ref([
@@ -146,47 +180,14 @@ const navigate = (path: string) => {
       </div>
     </section>
 
-    <!-- 最近题目 -->
-    <section class="mb-8 rounded-2xl border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
-      <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-        <Icon icon="fluent:history-20-filled" class="w-5 h-5 text-blue-600" />
-        最近做题记录
-      </h2>
-      <fluent-data-grid>
-        <fluent-data-grid-row row-type="header">
-          <fluent-data-grid-cell cell-type="columnheader" grid-column="1">题目ID</fluent-data-grid-cell>
-          <fluent-data-grid-cell cell-type="columnheader" grid-column="2">题目名称</fluent-data-grid-cell>
-          <fluent-data-grid-cell cell-type="columnheader" grid-column="3">难度</fluent-data-grid-cell>
-          <fluent-data-grid-cell cell-type="columnheader" grid-column="4">最近访问</fluent-data-grid-cell>
-          <fluent-data-grid-cell cell-type="columnheader" grid-column="5">操作</fluent-data-grid-cell>
-        </fluent-data-grid-row>
-        <fluent-data-grid-row v-for="problem in recentProblems" :key="problem.id">
-          <fluent-data-grid-cell grid-column="1">{{ problem.id }}</fluent-data-grid-cell>
-          <fluent-data-grid-cell grid-column="2">{{ problem.title }}</fluent-data-grid-cell>
-          <fluent-data-grid-cell grid-column="3">
-            <span :class="{
-              'px-2 py-0.5 rounded-full text-xs': true,
-              'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': problem.difficulty === '入门',
-              'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200': problem.difficulty === '简单',
-              'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200': problem.difficulty === '中等',
-              'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': problem.difficulty === '困难'
-            }">
-              {{ problem.difficulty }}
-            </span>
-          </fluent-data-grid-cell>
-          <fluent-data-grid-cell grid-column="4">{{ problem.lastVisited }}</fluent-data-grid-cell>
-          <fluent-data-grid-cell grid-column="5">
-            <div class="flex gap-2">
-              <fluent-button appearance="accent" @click="navigate(`/questions/${problem.id}`)" size="small">
-                查看
-              </fluent-button>
-              <fluent-button appearance="outline" @click="navigate(`/questions/${problem.id}/submit`)" size="small">
-                提交
-              </fluent-button>
-            </div>
-          </fluent-data-grid-cell>
-        </fluent-data-grid-row>
-      </fluent-data-grid>
+    <!-- 最近活动记录 -->
+    <section class="mb-8">
+      <RecentActivities 
+        :activities="recentActivities" 
+        title="最近活动记录" 
+        :showViewAllButton="true" 
+        :allButtonLink="'/profile'" 
+      />
     </section>
 
     <!-- 我的团队 -->
