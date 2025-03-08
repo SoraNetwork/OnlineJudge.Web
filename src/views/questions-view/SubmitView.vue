@@ -5,10 +5,12 @@ import { Icon } from '@iconify/vue'
 import * as monaco from 'monaco-editor'
 import TokenItem from '@/components/TokenItem.vue'
 import IconButton  from "@/components/IconButton.vue";
+import { getQuestionById, submitCode } from '@/api/questionApi';
+import { message } from "@/services/MessageService"; // 导入消息服务
 
 const route = useRoute();
 const router = useRouter();
-const problemId = route.params.id;
+const problemId = route.params.id as string;
 
 const problem = ref({
   id: 'P1001',
@@ -16,6 +18,9 @@ const problem = ref({
   difficulty: '入门',
 });
 
+// 提交状态
+const isSubmitting = ref(false);
+// 移除 submitResult ref，使用全局消息服务替代
 
 const languages = [
   { 
@@ -60,9 +65,8 @@ const languageMap: Record<string, string> = {
   'javascript': 'javascript'
 };
 
-const handleLanguageSelect = (e: Event) => {
-  const value = (e.target as HTMLSelectElement).value;
-  selectedLanguage.value = languages.find(l => l.value === value) || languages[0];
+const handleLanguageSelect = (lang: any) => {
+  selectedLanguage.value = lang;
   // 更新编辑器语言
   if (editorInstance.value) {
     monaco.editor.setModelLanguage(
@@ -70,14 +74,56 @@ const handleLanguageSelect = (e: Event) => {
       languageMap[selectedLanguage.value.value]
     );
   }
+  isMenuOpen.value = false;
 };
 
-const handleSubmit = () => {
-  console.log('提交代码:', {
-    problemId,
-    language: selectedLanguage.value.value,
-    code: code.value
-  });
+const fetchProblem = async () => {
+  try {
+    const response = await getQuestionById(problemId);
+    if (response.success && response.data) {
+      problem.value = {
+        id: response.data.id,
+        title: response.data.title,
+        difficulty: response.data.difficulty,
+      };
+    } else {
+      console.error('获取问题失败:', response.message);
+    }
+  } catch (error) {
+    console.error('获取问题详情出错:', error);
+  }
+};
+
+const handleSubmit = async () => {
+  // 验证代码是否为空
+  if (!code.value.trim()) {
+    message.error('代码不能为空');
+    return;
+  }
+  
+  isSubmitting.value = true;
+  
+  try {
+    const response = await submitCode({
+      questionId: problemId,
+      language: selectedLanguage.value.value,
+      code: code.value
+    });
+    
+    if (response.success && response.data) {
+      message.success(`提交成功！提交ID: ${response.data.id}`);
+      
+      // 跳转到提交详情页面
+      router.push(`/questions/status/detail/${response.data.id}`);
+    } else {
+      message.error(response.message || '提交失败');
+    }
+  } catch (error) {
+    message.error('提交请求发生错误');
+    console.error('提交代码时出错:', error);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 const handleBack = () => {
@@ -100,6 +146,9 @@ const tips = [
 ];
 
 onMounted(() => {
+  // 获取问题数据
+  fetchProblem();
+  
   // 初始化编辑器
   editorInstance.value = monaco.editor.create(editorContainer.value!, {
     value: code.value,
@@ -142,30 +191,57 @@ onMounted(() => {
         <!-- 代码编辑区 -->
         <div class="flex flex-col gap-4">
           <div class="flex justify-between items-center gap-4">
-            <!-- Replace menu with dropdown -->
-            <fluent-field>
-              <fluent-dropdown
-                :value="selectedLanguage.value"
-                @change="handleLanguageSelect"
+            <!-- 语言选择框 -->
+            <div class="relative">
+              <button
+                @click="isMenuOpen = !isMenuOpen"
+                class="flex items-center gap-2 px-4 py-2 border rounded-md bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600"
               >
-                <fluent-listbox>
-                  <fluent-option 
-                    v-for="lang in languages"
-                    :key="lang.value" 
-                    :value="lang.value"
-                  >
-                    <div class="flex items-center gap-2">
-                      <Icon :icon="lang.icon" class="w-5 h-5" />
-                      <span class="font-medium">{{ lang.label }}</span>
-                      <span class="text-sm text-neutral-500">{{ lang.description }}</span>
-                    </div>
-                  </fluent-option>
-                </fluent-listbox>
-              </fluent-dropdown>
-            </fluent-field>
+                <Icon :icon="selectedLanguage.icon" class="w-5 h-5" />
+                <span>{{ selectedLanguage.label }}</span>
+                <Icon
+                  icon="fluent:chevron-down-20-filled"
+                  class="w-4 h-4 ml-2"
+                  :class="{ 'rotate-180': isMenuOpen }"
+                />
+              </button>
+              
+              <!-- 语言下拉菜单 -->
+              <div
+                v-if="isMenuOpen"
+                class="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-lg z-10"
+              >
+                <div
+                  v-for="lang in languages"
+                  :key="lang.value"
+                  @click="handleLanguageSelect(lang)"
+                  class="flex items-center gap-2 px-4 py-3 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+                  :class="{
+                    'bg-accent-50 dark:bg-accent-900/20': selectedLanguage.value === lang.value
+                  }"
+                >
+                  <Icon :icon="lang.icon" class="w-5 h-5" />
+                  <div class="flex flex-col">
+                    <span class="font-medium">{{ lang.label }}</span>
+                    <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                      {{ lang.description }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-            <IconButton class="w-auto h-auto" Glyph="fluent:send-20-filled" :onclick="handleSubmit" Text="提交代码"/>
+            <IconButton 
+              class="w-auto h-auto" 
+              Glyph="fluent:send-20-filled" 
+              :onclick="handleSubmit" 
+              Text="提交代码"
+              :disabled="isSubmitting"
+              :loading="isSubmitting"
+            />
           </div>
+
+          <!-- 移除原有的提交结果提示组件 -->
 
           <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 overflow-hidden">
             <div 
@@ -251,5 +327,9 @@ textarea {
 /* 编辑器容器样式 */
 :deep(.monaco-editor) {
   padding: 8px 0;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
 }
 </style>

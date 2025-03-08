@@ -4,10 +4,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import TokenItem from '@/components/TokenItem.vue'
 import * as monaco from 'monaco-editor'
+import { getSubmissionDetail,type SubmissionDetail, type TestCaseResult } from '@/api/questionApi'
 
 const route = useRoute()
 const router = useRouter()
-const submissionId = route.params.id
+const submissionId = route.params.id as string
 
 interface TestCase {
   id: number
@@ -20,7 +21,7 @@ interface TestCase {
   message?: string
 }
 
-interface SubmissionDetail {
+interface SubmissionViewModel {
   id: string
   problemId: string
   problemTitle: string
@@ -35,38 +36,9 @@ interface SubmissionDetail {
   compileError?: string
 }
 
-const submission = ref<SubmissionDetail>({
-  id: '1001',
-  problemId: 'P1001',
-  problemTitle: 'A + B Problem',
-  username: 'user1',
-  status: 'Wrong Answer',
-  language: 'C++',
-  time: '100ms',
-  memory: '10.5MB',
-  submitTime: '2024-01-20 12:30:45',
-  code: '#include <iostream>\nusing namespace std;\nint main() {\n    int a, b;\n    cin >> a >> b;\n    cout << a + b << endl;\n    return 0;\n}',
-  testCases: [
-    {
-      id: 1,
-      status: 'Accepted',
-      time: '2ms',
-      memory: '1.2MB',
-      input: '1 2',
-      output: '3',
-      expected: '3'
-    },
-    {
-      id: 2,
-      status: 'Wrong Answer',
-      time: '3ms',
-      memory: '1.2MB',
-      input: '5 7',
-      output: '13',
-      expected: '12'
-    }
-  ]
-})
+const isLoading = ref(true)
+const error = ref<string | null>(null)
+const submission = ref<SubmissionViewModel | null>(null)
 
 const editorInstance = ref<monaco.editor.IStandaloneCodeEditor | null>(null)
 const editorContainer = ref<HTMLElement | null>(null)
@@ -100,9 +72,68 @@ const handleBack = () => {
   router.push('/status')
 }
 
-onMounted(() => {
+// 格式化时间和内存
+const formatTimeUsed = (timeUsed: number): string => {
+  return `${timeUsed} ms`
+}
+
+const formatMemoryUsed = (memoryUsed: number): string => {
+  return `${(memoryUsed / 1024).toFixed(2)} MB`
+}
+
+// 将API返回的提交记录转换为视图模型
+const convertToViewModel = (detail: SubmissionDetail): SubmissionViewModel => {
+  const testCases: TestCase[] = detail.testCaseResults.map((result, index) => ({
+    id: index + 1,
+    status: result.passed ? 'Accepted' : 'Wrong Answer',
+    time: formatTimeUsed(result.timeUsed),
+    memory: formatMemoryUsed(result.memoryUsed),
+    input: result.input,
+    output: result.actualOutput,
+    expected: result.expectedOutput
+  }))
+
+  return {
+    id: detail.id,
+    problemId: detail.questionId,
+    problemTitle: '', // 这个需要从题目获取，API中没有返回
+    username: detail.userName,
+    status: detail.status,
+    language: detail.language,
+    time: formatTimeUsed(detail.timeUsed),
+    memory: formatMemoryUsed(detail.memoryUsed),
+    submitTime: detail.submitTime,
+    code: detail.code,
+    testCases: testCases,
+    compileError: detail.message || undefined
+  }
+}
+
+// 获取提交记录详情
+const fetchSubmissionDetail = async () => {
+  isLoading.value = true
+  error.value = null
+  
+  try {
+    const response = await getSubmissionDetail(submissionId)
+    if (response.success && response.data) {
+      submission.value = convertToViewModel(response.data)
+    } else {
+      error.value = response.message || '获取提交记录失败'
+    }
+  } catch (err) {
+    console.error('获取提交记录详情出错:', err)
+    error.value = '系统错误，请稍后再试'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  await fetchSubmissionDetail()
+  
   // 初始化代码编辑器
-  if (editorContainer.value) {
+  if (editorContainer.value && submission.value) {
     editorInstance.value = monaco.editor.create(editorContainer.value, {
       value: submission.value.code,
       language: submission.value.language.toLowerCase(),
@@ -129,12 +160,23 @@ onMounted(() => {
           <fluent-button appearance="outline" @click="handleBack">
             <Icon icon="fluent:arrow-left-20-filled" class="w-5 h-5"/>
           </fluent-button>
-          <h1 class="text-xl font-bold">提交记录 #{{ submission.id }}</h1>
+          <h1 class="text-xl font-bold">提交记录 #{{ submissionId }}</h1>
         </div>
       </div>
 
+      <!-- 加载中状态 -->
+      <div v-if="isLoading" class="flex justify-center items-center py-16">
+        <fluent-progress-ring></fluent-progress-ring>
+      </div>
+
+      <!-- 错误信息 -->
+      <div v-else-if="error" class="text-center py-16">
+        <div class="text-red-500 mb-2">{{ error }}</div>
+        <fluent-button appearance="accent" @click="fetchSubmissionDetail">重新加载</fluent-button>
+      </div>
+
       <!-- 提交信息卡片 -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div v-else-if="submission" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2">
           <!-- 代码区域 -->
           <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden mb-6">
@@ -146,6 +188,16 @@ onMounted(() => {
               <TokenItem :Token="submission.status" :Glyph="getStatusIcon(submission.status)"/>
             </div>
             <div ref="editorContainer" class="h-[400px]"></div>
+          </div>
+
+          <!-- 编译错误信息 -->
+          <div v-if="submission.compileError" class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden mb-6">
+            <div class="bg-neutral-100 dark:bg-neutral-800 px-4 py-3">
+              <h2 class="font-semibold text-red-500">编译错误</h2>
+            </div>
+            <div class="p-4">
+              <pre class="bg-neutral-50 dark:bg-neutral-800 p-3 rounded text-sm overflow-x-auto text-red-500">{{ submission.compileError }}</pre>
+            </div>
           </div>
 
           <!-- 测试点详情 -->
@@ -196,13 +248,13 @@ onMounted(() => {
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-neutral-600 dark:text-neutral-400">题目</span>
-                <a class="text-blue-600 dark:text-blue-400 hover:underline">
-                  {{ submission.problemId }}. {{ submission.problemTitle }}
+                <a class="text-blue-600 dark:text-blue-400 hover:underline" :href="`/problem/${submission.problemId}`">
+                  {{ submission.problemId }}
                 </a>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-neutral-600 dark:text-neutral-400">用户</span>
-                <a class="text-blue-600 dark:text-blue-400 hover:underline">
+                <a class="text-blue-600 dark:text-blue-400 hover:underline" :href="`/user/${submission.username}`">
                   {{ submission.username }}
                 </a>
               </div>

@@ -307,7 +307,7 @@ defineExpose({
                 appearance="outline"
               />
               <span class="text-sm text-neutral-500">
-                建议范围：1-100
+                建议范围：1-10
               </span>
             </div>
           </div>

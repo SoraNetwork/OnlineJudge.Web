@@ -93,6 +93,47 @@ export interface GenerateTestcasesRequest {
   testCaseCount: number;
 }
 
+// 定义提交代码的请求接口
+export interface SubmitCodeRequest {
+  questionId: string;
+  code: string;
+  language: string;
+}
+
+// 定义提交代码的响应接口
+export interface SubmitCodeResponse {
+  id: string;
+  status: string;
+}
+
+// 定义测试用例结果的接口
+export interface TestCaseResult {
+  input: string;
+  expectedOutput: string;
+  passed: boolean;
+  actualOutput: string;
+  timeUsed: number;
+  memoryUsed: number;
+  score: number;
+}
+
+// 定义提交记录详情的接口
+export interface SubmissionDetail {
+  id: string;
+  questionId: string;
+  userId: string;
+  userName: string;
+  code: string;
+  language: string;
+  submitTime: string;
+  status: string;
+  timeUsed: number;
+  memoryUsed: number;
+  score: number;
+  message: string | null;
+  testCaseResults: TestCaseResult[];
+}
+
 /**
  * 获取指定ID的问题详情
  * @param questionId 问题ID
@@ -234,6 +275,51 @@ export const generateTestcasesByAI = async (request: GenerateTestcasesRequest): 
   }
 };
 
+/**
+ * 提交代码进行评测
+ * @param request 提交代码的请求数据
+ * @returns 提交结果
+ */
+export const submitCode = async (request: SubmitCodeRequest): Promise<ApiResponse<SubmitCodeResponse>> => {
+  try {
+    const response = await fetch(getApiUrl('/Submit'), {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(request)
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error('提交代码失败:', error);
+    return {
+      success: false,
+      message: '网络错误，请稍后再试'
+    };
+  }
+};
+
+/**
+ * 获取提交记录详情
+ * @param submissionId 提交记录ID
+ * @returns 提交记录详情
+ */
+export const getSubmissionDetail = async (submissionId: string): Promise<ApiResponse<SubmissionDetail>> => {
+  try {
+    const response = await fetch(getApiUrl(`/Submit/${submissionId}`), {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error('获取提交记录详情失败:', error);
+    return {
+      success: false,
+      message: '网络错误，请稍后再试'
+    };
+  }
+};
+
 // 同时保留 axios 版本的接口用于后续迁移
 export const questionApiAxios = {
   getQuestionById: (questionId:string) => {
@@ -260,5 +346,17 @@ export const questionApiAxios = {
     return apiClient.post('/Question/ai/generate-testcases', request, {
       headers: getAuthHeaders()
     });
-  }
+  },
+
+  submitCode: (request: SubmitCodeRequest) => {
+    return apiClient.post('/Submit', request, {
+      headers: getAuthHeaders()
+    });
+  },
+
+  getSubmissionDetail: (submissionId: string) => {
+    return apiClient.get(`/Submit/${submissionId}`, {
+      headers: getAuthHeaders()
+    });
+  },
 };

@@ -99,6 +99,9 @@ const removeTestCase = (index) => {
   message.info('已删除测试点')
 }
 
+// 添加加载状态
+const isLoading = ref(false)
+
 const handleSubmit = async () => {
   try {
     // 表单验证
@@ -138,6 +141,9 @@ const handleSubmit = async () => {
       tags: problem.value.tags
     }
     
+    // 开始加载
+    isLoading.value = true
+    
     // 调用创建题目API
     const response = await createQuestion(request)
     
@@ -150,6 +156,9 @@ const handleSubmit = async () => {
   } catch (error) {
     console.error('提交题目时出错:', error)
     message.error(`创建失败: ${error.message || '未知错误'}`)
+  } finally {
+    // 结束加载
+    isLoading.value = false
   }
 }
 
@@ -192,9 +201,57 @@ const handleConfirmProblem = (content) => {
   message.success('已应用 AI 生成的题目描述')
 }
 
+// 检查题目描述是否是默认模板
+const isDefaultContent = () => {
+  const defaultContent = `## 问题描述
+
+请在这里描述题目的具体要求...
+
+## 输入格式
+
+请描述输入数据的格式...
+
+## 输出格式
+
+请描述输出数据的格式...
+
+## 样例输入
+
+\`\`\`
+在这里给出具体的输入样例
+\`\`\`
+
+## 样例输出
+
+\`\`\`
+在这里给出具体的输出样例
+\`\`\`
+
+## 数据范围
+
+请描述输入数据的范围限制...
+- 例如：1 ≤ n ≤ 100
+- 例如：0 ≤ a[i] ≤ 1000
+
+## 提示
+
+可以在这里添加一些解题提示或说明...`;
+
+  return problem.value.content === defaultContent || 
+         problem.value.content.includes('请在这里描述题目的具体要求') ||
+         problem.value.content.includes('请描述输入数据的格式') ||
+         problem.value.content.includes('在这里给出具体的输入样例');
+}
+
 // 使用AI生成测试点
 const handleAITestCase = async (prompt) => {
   try {
+    // 检查题目是否仍是默认内容
+    if (isDefaultContent()) {
+      message.warning('请先编辑题目描述后再生成测试点')
+      return null
+    }
+    
     // 显示加载消息
     message.info('AI 正在生成测试用例...')
     
@@ -240,6 +297,12 @@ const showAIProblemDialog = () => {
 
 // 显示 AI 测试点生成对话框
 const showAITestCaseDialog = () => {
+  // 先检查题目内容是否是默认模板
+  if (isDefaultContent()) {
+    message.warning('请先编辑题目描述后再生成测试点')
+    return
+  }
+  
   aiDialogTitle.value = 'AI 生成测试点'
   // 传递题目标题和内容给对话框组件
   aiTestCaseDialog.value?.show({
@@ -305,9 +368,10 @@ const closeAllMenus = () => {
           </fluent-button>
           创建新题目
         </h1>
-        <fluent-button appearance="accent" @click="handleSubmit">
-          <Icon icon="fluent:save-20-filled" class="w-5 h-5 mr-2"/>
-          保存题目
+        <fluent-button appearance="accent" @click="handleSubmit" :disabled="isLoading">
+          <Icon v-if="isLoading" icon="fluent:spinner-ios-20-regular" class="w-5 h-5 mr-2 animate-spin"/>
+          <Icon v-else icon="fluent:save-20-filled" class="w-5 h-5 mr-2"/>
+          {{ isLoading ? '保存中...' : '保存题目' }}
         </fluent-button>
       </div>
 

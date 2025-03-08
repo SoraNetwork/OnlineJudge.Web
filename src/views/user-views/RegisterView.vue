@@ -4,10 +4,12 @@ import { useRouter } from "vue-router";
 import { setLoginState } from "@/stores/userStore";
 import { registerUser } from "@/api/userApi";
 import { message } from "@/services/MessageService"; // 导入消息服务
+import { Icon } from "@iconify/vue"; // 导入Icon组件
 
 document.title = "Sora Online Judge • 注册";
 
 const router = useRouter();
+const isLoading = ref(false); // 添加加载状态
 
 // 表单数据
 const formData = ref({
@@ -113,6 +115,7 @@ const handleRegister = async () => {
   }
 
   try {
+    isLoading.value = true; // 开始加载
     const response = await registerUser({
       userName: formData.value.username,
       password: formData.value.password,
@@ -148,6 +151,8 @@ const handleRegister = async () => {
   } catch (error) {
     message.error("注册过程中发生错误");
     console.error(error);
+  } finally {
+    isLoading.value = false; // 结束加载
   }
 };
 </script>
@@ -225,8 +230,14 @@ const handleRegister = async () => {
           type="submit"
           appearance="accent"
           class="w-full flex items-center justify-center gap-2 h-10"
+          :disabled="isLoading"
         >
-          注册
+          <Icon 
+            v-if="isLoading" 
+            icon="fluent:spinner-ios-20-regular" 
+            class="w-5 h-5 animate-spin"
+          />
+          {{ isLoading ? '注册中...' : '注册' }}
         </fluent-button>
 
         <!-- 登录链接 -->
