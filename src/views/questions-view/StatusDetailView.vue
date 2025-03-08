@@ -78,7 +78,7 @@ const formatTimeUsed = (timeUsed: number): string => {
 }
 
 const formatMemoryUsed = (memoryUsed: number): string => {
-  return `${(memoryUsed / 1024).toFixed(2)} MB`
+  return `${(memoryUsed / 1024).toFixed(0)} KB`
 }
 
 // 将API返回的提交记录转换为视图模型

@@ -1,124 +1,69 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, reactive } from 'vue';
 import { Icon } from "@iconify/vue";
 import router from '@/router';
+import { getContests, type Contest } from '@/api/contestApi';
 
 document.title = "Sora Online Judge • 比赛";
 
-interface Contest {
-  id: number;
-  title: string;
-  description: string;
-  startTime: string;
-  duration: string;
-  participants: number;
-  status: '即将开始' | '进行中' | '已结束';
-  type: '公开赛' | '私有赛' | '练习赛';
-  difficulty: '入门' | '简单' | '中等' | '困难';
-}
+// 状态
+const contests = ref<Contest[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
+const totalCount = ref(0);
 
-const contests = ref<Contest[]>([
-  {
-    id: 1,
-    title: "SOJ 周赛 #1",
-    description: "每周例行算法练习赛，适合新手参与",
-    startTime: "2024-02-01 14:00",
-    duration: "2小时",
-    participants: 128,
-    status: "即将开始",
-    type: "公开赛",
-    difficulty: "简单"
-  },
-  {
-    id: 2,
-    title: "2024 寒假集训营",
-    description: "为在校学生提供的算法训练营",
-    startTime: "2024-01-25 09:00",
-    duration: "7天",
-    participants: 256,
-    status: "已结束",
-    type: "私有赛",
-    difficulty: "中等"
-  },
-  {
-    id: 3,
-    title: "SOJ 月赛 #12",
-    description: "月度大型竞赛，题目难度适中",
-    startTime: "2024-02-15 10:00",
-    duration: "4小时",
-    participants: 512,
-    status: "即将开始",
-    type: "公开赛",
-    difficulty: "中等"
-  },
-  {
-    id: 4,
-    title: "算法进阶训练赛",
-    description: "针对有竞赛经验的选手设计的高强度训练",
-    startTime: "2024-02-10 13:00",
-    duration: "5小时",
-    participants: 89,
-    status: "即将开始",
-    type: "练习赛",
-    difficulty: "困难"
-  },
-  {
-    id: 5,
-    title: "新手入门赛 #3",
-    description: "专为编程新手打造的友好竞赛环境",
-    startTime: "2024-02-03 09:30",
-    duration: "3小时",
-    participants: 320,
-    status: "即将开始",
-    type: "练习赛",
-    difficulty: "入门"
-  }
-]);
-
-const filterStatus = ref<string>('全部');
-const filterType = ref<string>('全部');
-const sortBy = ref<string>('最新');
-
-const filteredContests = computed(() => {
-  let result = [...contests.value];
-  
-  if (filterStatus.value !== '全部') {
-    result = result.filter(contest => contest.status === filterStatus.value);
-  }
-  
-  if (filterType.value !== '全部') {
-    result = result.filter(contest => contest.type === filterType.value);
-  }
-  
-  // 排序
-  if (sortBy.value === '最新') {
-    result.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
-  } else if (sortBy.value === '参与人数') {
-    result.sort((a, b) => b.participants - a.participants);
-  }
-  
-  return result;
+// 分页和筛选参数
+const params = reactive({
+  status: '全部',
+  type: '全部',
+  sortBy: '最新',
+  pageIndex: 1,
+  pageSize: 20
 });
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case '即将开始': return 'text-blue-600 dark:text-blue-400';
-    case '进行中': return 'text-green-600 dark:text-green-400';
-    case '已结束': return 'text-neutral-600 dark:text-neutral-400';
-    default: return '';
+// 加载比赛数据
+const loadContests = async () => {
+  loading.value = true;
+  error.value = null;
+  
+  try {
+    const response = await getContests({
+      status: params.status,
+      type: params.type,
+      sortBy: params.sortBy,
+      pageIndex: params.pageIndex,
+      pageSize: params.pageSize
+    });
+    
+    if (response.success && response.data) {
+      contests.value = response.data;
+      // 如果API返回的是分页结果，可以设置总数
+      // totalCount.value = response.data.totalCount;
+    } else {
+      error.value = response.message || '加载比赛失败';
+      contests.value = [];
+    }
+  } catch (err) {
+    error.value = '获取比赛数据时出错';
+    console.error('获取比赛列表失败:', err);
+    contests.value = [];
+  } finally {
+    loading.value = false;
   }
 };
 
-const getDifficultyColor = (difficulty: string) => {
-  switch (difficulty) {
-    case '入门': return 'text-green-600 dark:text-green-400';
-    case '简单': return 'text-blue-600 dark:text-blue-400';
-    case '中等': return 'text-yellow-600 dark:text-yellow-400';
-    case '困难': return 'text-red-600 dark:text-red-400';
-    default: return '';
-  }
+// 初始加载
+onMounted(() => {
+  loadContests();
+});
+
+// 监听筛选条件变化
+const applyFilters = () => {
+  params.pageIndex = 1; // 重置页码
+  loadContests();
 };
 
+// 菜单状态
 const isStatusMenuOpen = ref(false);
 const isTypeMenuOpen = ref(false);
 const isSortMenuOpen = ref(false);
@@ -150,6 +95,25 @@ const closeAllMenus = () => {
   isSortMenuOpen.value = false;
 };
 
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case '即将开始': return 'text-blue-600 dark:text-blue-400';
+    case '进行中': return 'text-green-600 dark:text-green-400';
+    case '已结束': return 'text-neutral-600 dark:text-neutral-400';
+    default: return '';
+  }
+};
+
+const getDifficultyColor = (difficulty: string) => {
+  switch (difficulty) {
+    case '入门': return 'text-green-600 dark:text-green-400';
+    case '简单': return 'text-blue-600 dark:text-blue-400';
+    case '中等': return 'text-yellow-600 dark:text-yellow-400';
+    case '困难': return 'text-red-600 dark:text-red-400';
+    default: return '';
+  }
+};
+
 function navigate(path: string) {
   window.scrollTo(0, 0);
   router.push(path);
@@ -175,7 +139,7 @@ function navigate(path: string) {
             @click="toggleMenu('status')"
             class="min-w-32 px-3 py-1.5 rounded-sm transition flex items-center justify-between bg-transparent dark:text-neutral-200 text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700"
           >
-            <span>{{ filterStatus === '全部' ? '全部状态' : filterStatus }}</span>
+            <span>{{ params.status === '全部' ? '全部状态' : params.status }}</span>
             <Icon icon="fluent:chevron-down-20-regular" 
                   class="w-4 h-4 ml-2 transition-transform" 
                   :class="{ 'rotate-180': isStatusMenuOpen }" />
@@ -186,9 +150,9 @@ function navigate(path: string) {
               <button
                 v-for="status in ['全部', '即将开始', '进行中', '已结束']"
                 :key="status"
-                @click="filterStatus = status; isStatusMenuOpen = false"
+                @click="params.status = status; isStatusMenuOpen = false; applyFilters()"
                 class="block w-full text-left px-4 py-2 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
-                :class="{ 'bg-neutral-200 dark:bg-neutral-700': filterStatus === status }"
+                :class="{ 'bg-neutral-200 dark:bg-neutral-700': params.status === status }"
               >
                 {{ status === '全部' ? '全部状态' : status }}
               </button>
@@ -202,7 +166,7 @@ function navigate(path: string) {
             @click="toggleMenu('type')"
             class="min-w-32 px-3 py-1.5 rounded-sm transition flex items-center justify-between bg-transparent dark:text-neutral-200 text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700"
           >
-            <span>{{ filterType === '全部' ? '全部类型' : filterType }}</span>
+            <span>{{ params.type === '全部' ? '全部类型' : params.type }}</span>
             <Icon icon="fluent:chevron-down-20-regular" 
                   class="w-4 h-4 ml-2 transition-transform"
                   :class="{ 'rotate-180': isTypeMenuOpen }" />
@@ -213,9 +177,9 @@ function navigate(path: string) {
               <button
                 v-for="type in ['全部', '公开赛', '私有赛', '练习赛']"
                 :key="type"
-                @click="filterType = type; isTypeMenuOpen = false"
+                @click="params.type = type; isTypeMenuOpen = false; applyFilters()"
                 class="block w-full text-left px-4 py-2 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
-                :class="{ 'bg-neutral-200 dark:bg-neutral-700': filterType === type }"
+                :class="{ 'bg-neutral-200 dark:bg-neutral-700': params.type === type }"
               >
                 {{ type === '全部' ? '全部类型' : type }}
               </button>
@@ -229,7 +193,7 @@ function navigate(path: string) {
             @click="toggleMenu('sort')"
             class="min-w-32 px-3 py-1.5 rounded-sm transition flex items-center justify-between bg-transparent dark:text-neutral-200 text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700"
           >
-            <span>{{ sortBy }}</span>
+            <span>{{ params.sortBy }}</span>
             <Icon icon="fluent:chevron-down-20-regular" 
                   class="w-4 h-4 ml-2 transition-transform"
                   :class="{ 'rotate-180': isSortMenuOpen }" />
@@ -240,9 +204,9 @@ function navigate(path: string) {
               <button
                 v-for="option in ['最新', '参与人数']"
                 :key="option"
-                @click="sortBy = option; isSortMenuOpen = false"
+                @click="params.sortBy = option; isSortMenuOpen = false; applyFilters()"
                 class="block w-full text-left px-4 py-2 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
-                :class="{ 'bg-neutral-200 dark:bg-neutral-700': sortBy === option }"
+                :class="{ 'bg-neutral-200 dark:bg-neutral-700': params.sortBy === option }"
               >
                 {{ option }}
               </button>
@@ -251,9 +215,25 @@ function navigate(path: string) {
         </div>
       </div>
 
-      <!-- 竞赛列表 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
-        <div v-for="contest in filteredContests" :key="contest.id"
+      <!-- 加载中状态 -->
+      <div v-if="loading" class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+
+      <!-- 错误提示 -->
+      <div v-else-if="error" class="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-6">
+        <p>{{ error }}</p>
+        <button 
+          @click="loadContests"
+          class="mt-2 px-3 py-1 bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 rounded hover:bg-red-300 dark:hover:bg-red-700 transition"
+        >
+          重试
+        </button>
+      </div>
+
+      <!-- 比赛列表 -->
+      <div v-else-if="contests.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+        <div v-for="contest in contests" :key="contest.id"
           @click="navigate(`contests/${contest.id}`)"
           class="bg-neutral-50 dark:bg-neutral-800 rounded-lg border-1 border-neutral-200 dark:border-neutral-700 p-6 hover:border-blue-500 transition-colors cursor-pointer group">
           <div class="flex justify-between items-start mb-4">
@@ -272,7 +252,7 @@ function navigate(path: string) {
           <div class="flex flex-wrap gap-4 text-sm text-neutral-600 dark:text-neutral-400">
             <div class="flex items-center gap-1">
               <Icon icon="fluent:calendar-20-regular" class="w-4 h-4" />
-              <span>{{ contest.startTime }}</span>
+              <span>{{ new Date(contest.startTime).toLocaleString() }}</span>
             </div>
             <div class="flex items-center gap-1">
               <Icon icon="fluent:timer-20-regular" class="w-4 h-4" />
@@ -297,6 +277,12 @@ function navigate(path: string) {
             </span>
           </div>
         </div>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else class="text-center py-12">
+        <Icon icon="fluent:calendar-empty-20-regular" class="w-16 h-16 mx-auto text-neutral-400" />
+        <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-400">暂无比赛</p>
       </div>
     </div>
   </div>

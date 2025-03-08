@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import TokenItem from '@/components/TokenItem.vue'
 import { Dialog } from '@fluentui/web-components'
+import { createContest, type CreateContestRequest } from '@/api/contestApi'
 
 const router = useRouter()
 
@@ -180,11 +181,80 @@ const handleDurationSelect = (hours: string) => {
   }
 }
 
+// 添加创建状态控制
+const isSubmitting = ref(false)
+const submitError = ref<string | null>(null)
+const submitSuccess = ref(false)
+
 // 提交表单
 const handleSubmit = async () => {
-  // TODO: 实现提交逻辑
-  console.log('提交的比赛数据：', contestForm.value)
-  router.push('/contests')
+  if (isSubmitting.value) return
+  
+  // 验证表单
+  if (!contestForm.value.title) {
+    submitError.value = '请输入比赛标题'
+    return
+  }
+  
+  if (!contestForm.value.startTime) {
+    submitError.value = '请选择开始时间'
+    return
+  }
+  
+  if (!contestForm.value.endTime) {
+    submitError.value = '请选择结束时间'
+    return
+  }
+  
+  // 检查是否所有题目都已选择
+  const hasInvalidProblem = contestForm.value.problems.some(p => !p.problemId)
+  if (hasInvalidProblem) {
+    submitError.value = '请为所有题目选择题目'
+    return
+  }
+  
+  isSubmitting.value = true
+  submitError.value = null
+  
+  try {
+    // 准备请求数据
+    const requestData: CreateContestRequest = {
+      title: contestForm.value.title,
+      description: contestForm.value.description,
+      startTime: new Date(contestForm.value.startTime).toISOString(),
+      endTime: new Date(contestForm.value.endTime).toISOString(),
+      duration: contestForm.value.duration,
+      type: contestForm.value.type,
+      difficulty: contestForm.value.difficulty,
+      rules: contestForm.value.rules.filter(rule => rule.trim() !== ''), // 过滤空规则
+      problems: contestForm.value.problems.map(p => ({
+        problemId: p.problemId?.toString() || '',
+        displayId: p.displayId,
+        score: p.score
+      })),
+      visibility: {
+        type: contestForm.value.visibility.type,
+        teams: contestForm.value.visibility.teams
+      }
+    }
+    
+    const response = await createContest(requestData)
+    
+    if (response.success) {
+      submitSuccess.value = true
+      // 显示成功消息，延迟跳转
+      setTimeout(() => {
+        router.push('/contests')
+      }, 1500)
+    } else {
+      submitError.value = response.message || '创建比赛失败，请稍后再试'
+    }
+  } catch (err) {
+    console.error('创建比赛时出错:', err)
+    submitError.value = '创建比赛时出错'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 // 添加搜索相关的状态
@@ -232,11 +302,24 @@ const applyProblemSelection = (problem: { id: number, title: string, difficulty:
         <div class="flex items-center justify-between mb-6">
           <h1 class="text-2xl font-bold">创建新比赛</h1>
           <button @click="handleSubmit"
-                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg 
-                         transition-colors duration-200 flex items-center gap-2">
-            <Icon icon="fluent:save-20-filled" class="w-5 h-5" />
-            保存比赛
+                  :disabled="isSubmitting"
+                  class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 dark:disabled:bg-blue-800 
+                         text-white px-4 py-2 rounded-lg transition-colors duration-200 
+                         flex items-center gap-2">
+            <div v-if="isSubmitting" class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+            <Icon v-else icon="fluent:save-20-filled" class="w-5 h-5" />
+            {{ isSubmitting ? '保存中...' : '保存比赛' }}
           </button>
+        </div>
+        
+        <!-- 显示提交错误或成功信息 -->
+        <div v-if="submitError" class="mb-6 p-3 bg-red-100 dark:bg-red-900/20 rounded-lg text-red-700 dark:text-red-400">
+          {{ submitError }}
+        </div>
+        
+        <div v-if="submitSuccess" class="mb-6 p-3 bg-green-100 dark:bg-green-900/20 rounded-lg text-green-700 dark:text-green-400 flex items-center gap-2">
+          <Icon icon="fluent:checkmark-circle-20-filled" class="w-5 h-5" />
+          比赛创建成功，即将跳转到比赛列表
         </div>
 
         <!-- 基本信息 -->

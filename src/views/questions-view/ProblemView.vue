@@ -19,6 +19,7 @@ import { getQuestionById } from '@/api/questionApi'
 
 const route = useRoute();
 const problemId = route.params.id;
+const fromcontestId = route.params.fromcontestId;
 
 const problem = ref({
   id: '',
@@ -121,6 +122,9 @@ const handleSave = () => {
 };
 
 const handleSubmit = () => {
+  if (fromcontestId != null){
+    router.push(`/questions/${problemId}/${fromcontestId}/submit`);
+  }
   router.push(`/questions/${problemId}/submit`);
 };
 

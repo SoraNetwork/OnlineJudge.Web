@@ -338,12 +338,14 @@ defineExpose({
         <!-- 题目描述预览 -->
         <div v-if="mode === 'problem'" class="space-y-4">
           <div class="border rounded-lg p-4 bg-neutral-50 dark:bg-neutral-900">
-            <Editor
-              :value="previewData"
-              :plugins="plugins"
-              :locale="zhHans"
-              previewOnly
-            />
+            <div class="dark:invert">
+              <Editor
+                :value="previewData"
+                :plugins="plugins"
+                :locale="zhHans"
+                previewOnly
+              />
+            </div>
           </div>
         </div>
 
