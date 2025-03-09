@@ -7,12 +7,12 @@ const props = defineProps<{
 
 const statusOptions = {
   'Accepted': { icon: 'fluent:checkmark-20-filled' },
-  'Wrong Answer': { icon: 'fluent:dismiss-20-filled' },
-  'Time Limit Exceeded': { icon: 'fluent:timer-20-filled' },
-  'Memory Limit Exceeded': { icon: 'fluent:warning-20-filled' },
-  'Runtime Error': { icon: 'fluent:error-circle-20-filled' },
-  'Compile Error': { icon: 'fluent:code-20-filled' },
-  'Duplicate Code Error':{ icon: 'fluent:alert-20-filled' }
+  'WrongAnswer': { icon: 'fluent:dismiss-20-filled' },
+  'TimeLimitExceeded': { icon: 'fluent:timer-20-filled' },
+  'MemoryLimitExceeded': { icon: 'fluent:warning-20-filled' },
+  'RuntimeError': { icon: 'fluent:error-circle-20-filled' },
+  'CompileError': { icon: 'fluent:code-20-filled' },
+  'DuplicateCodeError':{ icon: 'fluent:alert-20-filled' }
 }
 
 const getStatusIcon = (status: string): string => {

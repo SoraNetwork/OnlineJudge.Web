@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { Editor } from '@bytemd/vue-next'
@@ -70,12 +70,49 @@ const problem = ref({
 })
 
 const difficulties = ['入门', '简单', '中等', '困难']
-const visibilities = [
-  { value: 'public', label: '公开' },
-  { value: 'team', label: '团队内可见' },
-  { value: 'contest', label: '比赛时可见' },
-  { value: 'private', label: '私有' }
-]
+
+// 添加用户信息引用
+const currentUser = ref({
+  username: '',
+  teams: []
+})
+
+// 修改可见性选项为计算属性
+const visibilities = computed(() => [
+  { value: 'public', label: '公开', description: '所有用户可见' },
+  { value: 'contest', label: '比赛专用', description: '仅在比赛中可见' },
+  ...currentUser.value.teams.map(team => ({ 
+    value: `team.${team.id}`, 
+    label: `团队: ${team.name}`, 
+    description: `仅对"${team.name}"团队成员可见`
+  })),
+  { 
+    value: `private.${currentUser.value.username}`, 
+    label: `私有`, 
+    description: `仅对您(${currentUser.value.username})可见` 
+  }
+])
+
+// 在组件挂载时获取当前用户信息
+onMounted(async () => {
+  try {
+    // 这里应该调用获取用户信息的API
+    // 模拟数据，实际开发时请替换为真实API调用
+    currentUser.value = {
+      username: 'current_user', // 应从API获取
+      teams: [
+        { id: 'team1', name: '算法竞赛队' },
+        { id: 'team2', name: '课程小组' }
+      ] // 应从API获取
+    }
+    
+    // 设置默认可见性为私有
+    problem.value.visibility = `private.${currentUser.value.username}`
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+  }
+})
+
 const newTag = ref('')
 
 const addTag = () => {
@@ -429,24 +466,27 @@ const closeAllMenus = () => {
             <div class="relative" @click.stop>
               <button
                 @click="toggleMenu('visibility')"
-                class="min-w-32 px-3 py-1.5 rounded-sm transition flex items-center justify-between bg-transparent dark:text-neutral-200 text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                class="min-w-32 w-[65%] px-3 py-1.5 rounded-sm transition flex items-center justify-between bg-transparent dark:text-neutral-200 text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700"
               >
-                <span>{{ visibilities.find(v => v.value === problem.visibility)?.label }}</span>
+                <span>{{ visibilities.find(v => v.value === problem.visibility)?.label || '私有' }}</span>
                 <Icon icon="fluent:chevron-down-20-filled" 
                       class="w-4 h-4 ml-2 transition-transform"
                       :class="{ 'rotate-180': isVisibilityMenuOpen }" />
               </button>
               <div v-show="isVisibilityMenuOpen"
-                   class="absolute z-50 min-w-full mt-2 rounded-md shadow-lg origin-top-right transition-all">
+                   class="absolute z-50 w-[65%] mt-2 rounded-md shadow-lg origin-top-right transition-all">
                 <div class="rounded-md ring-1 ring-black ring-opacity-5 py-1 backdrop-blur-md bg-neutral-100/95 dark:bg-neutral-800/95">
                   <button
                     v-for="vis in visibilities"
                     :key="vis.value"
                     @click="problem.visibility = vis.value; isVisibilityMenuOpen = false"
-                    class="block min-w-32 text-left px-4 py-2 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                    class="block w-full text-left px-4 py-2 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
                     :class="{ 'bg-neutral-200 dark:bg-neutral-700': problem.visibility === vis.value }"
                   >
-                    {{ vis.label }}
+                    <div class="flex flex-col">
+                      <span>{{ vis.label }}</span>
+                      <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ vis.description }}</span>
+                    </div>
                   </button>
                 </div>
               </div>

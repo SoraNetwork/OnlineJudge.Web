@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import TokenItem from '@/components/TokenItem.vue'
 import * as monaco from 'monaco-editor'
-import { getSubmissionDetail,type SubmissionDetail, type TestCaseResult } from '@/api/questionApi'
+import { getSubmissionDetail, type SubmissionDetail, type TestCaseResult } from '@/api/questionApi'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,6 +19,7 @@ interface TestCase {
   output?: string
   expected?: string
   message?: string
+  score?: number // 添加分数字段
 }
 
 interface SubmissionViewModel {
@@ -34,6 +35,7 @@ interface SubmissionViewModel {
   code: string
   testCases: TestCase[]
   compileError?: string
+  score: number // 添加总分数字段
 }
 
 const isLoading = ref(true)
@@ -47,7 +49,12 @@ const editorContainer = ref<HTMLElement | null>(null)
 const getStatusIcon = (status: string): string => {
   const iconMap: Record<string, string> = {
     'Accepted': 'fluent:checkmark-20-filled',
+    'WrongAnswer': 'fluent:dismiss-20-filled',
     'Wrong Answer': 'fluent:dismiss-20-filled',
+    'TimeLimitExceeded': 'fluent:timer-20-filled',
+    'MemoryLimitExceeded': 'fluent:warning-20-filled',
+    'RuntimeError': 'fluent:error-circle-20-filled',
+    'CompileError': 'fluent:code-20-filled',
     'Time Limit Exceeded': 'fluent:timer-20-filled',
     'Memory Limit Exceeded': 'fluent:warning-20-filled',
     'Runtime Error': 'fluent:error-circle-20-filled',
@@ -69,7 +76,7 @@ const getLanguageIcon = (language: string): string => {
 
 // 返回列表
 const handleBack = () => {
-  router.push('/status')
+  router.back()
 }
 
 // 格式化时间和内存
@@ -90,7 +97,8 @@ const convertToViewModel = (detail: SubmissionDetail): SubmissionViewModel => {
     memory: formatMemoryUsed(result.memoryUsed),
     input: result.input,
     output: result.actualOutput,
-    expected: result.expectedOutput
+    expected: result.expectedOutput,
+    score: result.score // 添加测试点分数
   }))
 
   return {
@@ -105,15 +113,27 @@ const convertToViewModel = (detail: SubmissionDetail): SubmissionViewModel => {
     submitTime: detail.submitTime,
     code: detail.code,
     testCases: testCases,
-    compileError: detail.message || undefined
+    compileError: detail.message || undefined,
+    score: detail.score // 添加总分数
   }
+}
+
+// 获取分数的样式类，0分显示为红色
+const getScoreClass = (score: number | undefined): string => {
+  if (score === undefined) return '';
+  return score === 0 ? 'text-red-600 font-medium' : 'text-emerald-600 font-medium';
+}
+
+// 检查状态是否为 Pending
+const isPending = (status: string): boolean => {
+  return status === 'Pending';
 }
 
 // 获取提交记录详情
 const fetchSubmissionDetail = async () => {
   isLoading.value = true
   error.value = null
-  
+
   try {
     const response = await getSubmissionDetail(submissionId)
     if (response.success && response.data) {
@@ -131,7 +151,7 @@ const fetchSubmissionDetail = async () => {
 
 onMounted(async () => {
   await fetchSubmissionDetail()
-  
+
   // 初始化代码编辑器
   if (editorContainer.value && submission.value) {
     editorInstance.value = monaco.editor.create(editorContainer.value, {
@@ -157,8 +177,8 @@ onMounted(async () => {
       <!-- 返回按钮和标题 -->
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
-          <fluent-button appearance="outline" @click="handleBack">
-            <Icon icon="fluent:arrow-left-20-filled" class="w-5 h-5"/>
+          <fluent-button appearance="stealth" class="p-1 min-w-0" @click="handleBack">
+            <Icon icon="fluent:arrow-left-20-filled" class="w-5 h-5" />
           </fluent-button>
           <h1 class="text-xl font-bold">提交记录 #{{ submissionId }}</h1>
         </div>
@@ -182,21 +202,27 @@ onMounted(async () => {
           <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden mb-6">
             <div class="bg-neutral-100 dark:bg-neutral-800 px-4 py-3 flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <Icon :icon="getLanguageIcon(submission.language)" class="w-5 h-5"/>
+                <Icon :icon="getLanguageIcon(submission.language)" class="w-5 h-5" />
                 <span>{{ submission.language }}</span>
               </div>
-              <TokenItem :Token="submission.status" :Glyph="getStatusIcon(submission.status)"/>
+              <div class="flex items-center gap-3">
+                <span v-if="!isPending(submission.status)" :class="getScoreClass(submission.score)">得分: {{
+                  submission.score }}</span>
+                <TokenItem :Token="submission.status" :Glyph="getStatusIcon(submission.status)" />
+              </div>
             </div>
             <div ref="editorContainer" class="h-[400px]"></div>
           </div>
 
           <!-- 编译错误信息 -->
-          <div v-if="submission.compileError" class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden mb-6">
+          <div v-if="submission.compileError"
+            class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden mb-6">
             <div class="bg-neutral-100 dark:bg-neutral-800 px-4 py-3">
-              <h2 class="font-semibold text-red-500">编译错误</h2>
+              <h2 class="font-semibold text-red-500">错误</h2>
             </div>
             <div class="p-4">
-              <pre class="bg-neutral-50 dark:bg-neutral-800 p-3 rounded text-sm overflow-x-auto text-red-500">{{ submission.compileError }}</pre>
+              <pre
+                class="bg-neutral-50 dark:bg-neutral-800 p-3 rounded text-sm overflow-x-auto text-red-500">{{ submission.compileError }}</pre>
             </div>
           </div>
 
@@ -206,30 +232,34 @@ onMounted(async () => {
               <h2 class="font-semibold">测试点信息</h2>
             </div>
             <div class="divide-y divide-neutral-200 dark:divide-neutral-700">
-              <div v-for="testCase in submission.testCases" :key="testCase.id"
-                class="p-4">
+              <div v-for="testCase in submission.testCases" :key="testCase.id" class="p-4">
                 <div class="flex items-center justify-between mb-3">
                   <div class="flex items-center gap-3">
                     <span class="font-medium">测试点 #{{ testCase.id }}</span>
-                    <TokenItem :Token="testCase.status" :Glyph="getStatusIcon(testCase.status)"/>
+                    <TokenItem :Token="testCase.status" :Glyph="getStatusIcon(testCase.status)" />
                   </div>
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                    <span class="mr-4">耗时: {{ testCase.time }}</span>
+                  <div class="text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-4">
+                    <span v-if="!isPending(testCase.status)" :class="getScoreClass(testCase.score)">得分: {{
+                      testCase.score }}</span>
+                    <span>耗时: {{ testCase.time }}</span>
                     <span>内存: {{ testCase.memory }}</span>
                   </div>
                 </div>
                 <div v-if="testCase.status !== 'Accepted'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div v-if="testCase.input" class="space-y-2">
                     <div class="font-medium text-sm">输入：</div>
-                    <pre class="bg-neutral-50 dark:bg-neutral-800 p-2 rounded text-sm overflow-x-auto">{{ testCase.input }}</pre>
+                    <pre
+                      class="bg-neutral-50 dark:bg-neutral-800 p-2 rounded text-sm overflow-x-auto">{{ testCase.input }}</pre>
                   </div>
                   <div v-if="testCase.output" class="space-y-2">
                     <div class="font-medium text-sm">输出：</div>
-                    <pre class="bg-neutral-50 dark:bg-neutral-800 p-2 rounded text-sm overflow-x-auto">{{ testCase.output }}</pre>
+                    <pre
+                      class="bg-neutral-50 dark:bg-neutral-800 p-2 rounded text-sm overflow-x-auto">{{ testCase.output }}</pre>
                   </div>
                   <div v-if="testCase.expected" class="space-y-2">
                     <div class="font-medium text-sm">期望输出：</div>
-                    <pre class="bg-neutral-50 dark:bg-neutral-800 p-2 rounded text-sm overflow-x-auto">{{ testCase.expected }}</pre>
+                    <pre
+                      class="bg-neutral-50 dark:bg-neutral-800 p-2 rounded text-sm overflow-x-auto">{{ testCase.expected }}</pre>
                   </div>
                 </div>
               </div>
@@ -239,7 +269,8 @@ onMounted(async () => {
 
         <!-- 提交信息侧边栏 -->
         <div class="lg:col-span-1">
-          <div class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-6">
+          <div
+            class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-6">
             <h2 class="text-lg font-semibold mb-4">提交信息</h2>
             <div class="space-y-4">
               <div class="flex justify-between items-center">
@@ -248,24 +279,31 @@ onMounted(async () => {
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-neutral-600 dark:text-neutral-400">题目</span>
-                <a class="text-blue-600 dark:text-blue-400 hover:underline" :href="`/problem/${submission.problemId}`">
+                <a class="text-blue-600 dark:text-blue-400 hover:underline"
+                  :href="`/questions/${submission.problemId}`">
                   {{ submission.problemId }}
                 </a>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-neutral-600 dark:text-neutral-400">用户</span>
-                <a class="text-blue-600 dark:text-blue-400 hover:underline" :href="`/user/${submission.username}`">
+                <a class="text-blue-600 dark:text-blue-400 hover:underline" :href="`/profile/${submission.username}`">
                   {{ submission.username }}
                 </a>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-neutral-600 dark:text-neutral-400">状态</span>
-                <TokenItem :Token="submission.status" :Glyph="getStatusIcon(submission.status)"/>
+                <TokenItem :Token="submission.status" :Glyph="getStatusIcon(submission.status)" />
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-neutral-600 dark:text-neutral-400">得分</span>
+                <span v-if="!isPending(submission.status)" :class="getScoreClass(submission.score)">{{ submission.score
+                  }}</span>
+                <span v-else class="text-blue-500">评测中</span>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-neutral-600 dark:text-neutral-400">语言</span>
                 <div class="flex items-center gap-2">
-                  <Icon :icon="getLanguageIcon(submission.language)" class="w-5 h-5"/>
+                  <Icon :icon="getLanguageIcon(submission.language)" class="w-5 h-5" />
                   <span>{{ submission.language }}</span>
                 </div>
               </div>

@@ -134,6 +134,27 @@ export interface SubmissionDetail {
   testCaseResults: TestCaseResult[];
 }
 
+// 定义获取提交记录的请求参数
+export interface GetSubmissionsParams {
+  questionId?: string;
+  status?: string;
+  pageIndex?: number;
+  pageSize?: number;
+}
+
+// 定义提交记录项的接口
+export interface SubmissionRecord {
+  id: string;
+  questionId: string;
+  userId: string;
+  userName: string;
+  status: string;
+  language: string;
+  submitTime: string;
+  executionTime: number;
+  memoryUsage: number;
+}
+
 /**
  * 获取指定ID的问题详情
  * @param questionId 问题ID
@@ -320,6 +341,50 @@ export const getSubmissionDetail = async (submissionId: string): Promise<ApiResp
   }
 };
 
+/**
+ * 获取当前用户的提交记录
+ * @param params 筛选参数
+ * @returns 提交记录列表
+ */
+export const getSubmissions = async (params: GetSubmissionsParams = {}): Promise<ApiResponse<SubmissionRecord[]>> => {
+  try {
+    // 构建查询参数
+    const queryParams = new URLSearchParams();
+    
+    if (params.questionId) {
+      queryParams.append('questionId', params.questionId);
+    }
+    
+    if (params.status) {
+      queryParams.append('status', params.status);
+    }
+    
+    if (params.pageIndex !== undefined) {
+      queryParams.append('pageIndex', params.pageIndex.toString());
+    }
+    
+    if (params.pageSize !== undefined) {
+      queryParams.append('pageSize', params.pageSize.toString());
+    }
+    
+    const queryString = queryParams.toString();
+    const url = queryString ? `/Submit?${queryString}` : '/Submit';
+    
+    const response = await fetch(getApiUrl(url), {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error('获取提交记录失败:', error);
+    return {
+      success: false,
+      message: '网络错误，请稍后再试'
+    };
+  }
+};
+
 // 同时保留 axios 版本的接口用于后续迁移
 export const questionApiAxios = {
   getQuestionById: (questionId:string) => {
@@ -357,6 +422,13 @@ export const questionApiAxios = {
   getSubmissionDetail: (submissionId: string) => {
     return apiClient.get(`/Submit/${submissionId}`, {
       headers: getAuthHeaders()
+    });
+  },
+
+  getSubmissions: (params: GetSubmissionsParams = {}) => {
+    return apiClient.get('/Submit', { 
+      params,
+      headers: getAuthHeaders() 
     });
   },
 };
