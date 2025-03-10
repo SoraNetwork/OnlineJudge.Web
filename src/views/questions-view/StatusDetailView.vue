@@ -206,7 +206,7 @@ onMounted(async () => {
                 <span>{{ submission.language }}</span>
               </div>
               <div class="flex items-center gap-3">
-                <span v-if="!isPending(submission.status)" :class="getScoreClass(submission.score)">得分: {{
+                <span v-if="!isPending(submission.status)" :class="getScoreClass(submission.score)">得分 {{
                   submission.score }}</span>
                 <TokenItem :Token="submission.status" :Glyph="getStatusIcon(submission.status)" />
               </div>
@@ -239,7 +239,7 @@ onMounted(async () => {
                     <TokenItem :Token="testCase.status" :Glyph="getStatusIcon(testCase.status)" />
                   </div>
                   <div class="text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-4">
-                    <span v-if="!isPending(testCase.status)" :class="getScoreClass(testCase.score)">得分: {{
+                    <span v-if="!isPending(testCase.status)" :class="getScoreClass(testCase.score)">得分  {{
                       testCase.score }}</span>
                     <span>耗时: {{ testCase.time }}</span>
                     <span>内存: {{ testCase.memory }}</span>

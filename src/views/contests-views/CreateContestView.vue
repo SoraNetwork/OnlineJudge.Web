@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import TokenItem from '@/components/TokenItem.vue'
 import { Dialog } from '@fluentui/web-components'
 import { createContest, type CreateContestRequest } from '@/api/contestApi'
+import { getQuestions, type Question, type GetQuestionsParams } from '@/api/questionApi'
 
 const router = useRouter()
 
@@ -25,7 +26,7 @@ const contestForm = ref({
   ],
   problems: [
     { 
-      problemId: null as number | null, // 实际题目ID
+      problemId: null as string | null, // 实际题目ID
       displayId: 'A', // 比赛中显示的题号
       title: '', 
       difficulty: '入门',
@@ -65,14 +66,50 @@ const availableTeams = ref([
   { id: 3, name: '新生训练营' }
 ])
 
-// 添加可选题目列表
-const availableProblems = ref([
-  { id: 1001, title: '两数之和', difficulty: '入门' },
-  { id: 1002, title: '链表反转', difficulty: '简单' },
-  { id: 1003, title: '二叉树遍历', difficulty: '中等' },
-  { id: 1004, title: '最短路径', difficulty: '困难' },
-  { id: 1005, title: '动态规划基础', difficulty: '中等' },
-])
+// 替换静态题目为API获取的题目列表
+const availableProblems = ref<Question[]>([])
+const isLoadingProblems = ref(false)
+const loadingError = ref<string | null>(null)
+const totalProblemCount = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// 获取题目列表
+const fetchProblems = async (page = 1, search = '') => {
+  isLoadingProblems.value = true
+  loadingError.value = null
+  
+  try {
+    const params: GetQuestionsParams = {
+      pageIndex: page - 1, // API使用0基索引
+      pageSize: pageSize.value,
+    }
+    
+    if (search) {
+      params.searchTitle = search
+    }
+    
+    const response = await getQuestions(params)
+    
+    if (response.success && response.data) {
+      availableProblems.value = response.data.items
+      totalProblemCount.value = response.data.totalCount
+      currentPage.value = page
+    } else {
+      loadingError.value = response.message || '获取题目列表失败'
+    }
+  } catch (error) {
+    console.error('获取题目失败:', error)
+    loadingError.value = '网络错误，请稍后重试'
+  } finally {
+    isLoadingProblems.value = false
+  }
+}
+
+// 初始加载题目
+onMounted(() => {
+  fetchProblems()
+})
 
 // 生成显示题号（A, B, C, D...）
 const generateDisplayId = (index: number) => {
@@ -91,7 +128,7 @@ const addProblem = () => {
 }
 
 // 选择题目
-const selectProblem = (index: number, problem: { id: number, title: string, difficulty: string }) => {
+const selectProblem = (index: number, problem: Question) => {
   contestForm.value.problems[index] = {
     ...contestForm.value.problems[index],
     problemId: problem.id,
@@ -262,20 +299,23 @@ const searchDialog = ref<Dialog | null>(null)
 const searchKeyword = ref('')
 const selectedProblemIndex = ref(-1)
 
-// 过滤后的问题列表
-const filteredProblems = computed(() => {
-  if (!searchKeyword.value) return availableProblems.value
+// 修改过滤函数，直接使用API搜索
+const handleSearchInputChange = () => {
+  // 延迟执行搜索，减少API调用
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    fetchProblems(1, searchKeyword.value)
+  }, 500)
+}
 
-  return availableProblems.value.filter(problem =>
-    problem.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
-    problem.id.toString().includes(searchKeyword.value)
-  )
-})
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 // 显示搜索对话框
 const showSearchDialog = (index: number) => {
   selectedProblemIndex.value = index
   searchKeyword.value = ''
+  currentPage.value = 1
+  fetchProblems(1, '') // 重新加载第一页数据
   searchDialog.value?.show()
 }
 
@@ -285,8 +325,15 @@ const closeSearchDialog = () => {
   searchKeyword.value = ''
 }
 
+// 加载更多题目
+const loadMoreProblems = () => {
+  if (availableProblems.value.length < totalProblemCount.value) {
+    fetchProblems(currentPage.value + 1, searchKeyword.value)
+  }
+}
+
 // 应用搜索选择
-const applyProblemSelection = (problem: { id: number, title: string, difficulty: string }) => {
+const applyProblemSelection = (problem: Question) => {
   if (selectedProblemIndex.value >= 0) {
     selectProblem(selectedProblemIndex.value, problem)
   }
@@ -572,22 +619,52 @@ const applyProblemSelection = (problem: { id: number, title: string, difficulty:
             <Icon icon="fluent:dismiss-20-regular" class="w-5 h-5" />
           </fluent-button>
         </div>
-        <fluent-text-input 
-          v-model="searchKeyword" 
-          placeholder="输入题目编号或标题" 
-          class="min-w-[97%] mb-4" 
-        />
+        
+        <div class="relative mb-4">
+          <fluent-text-input 
+            v-model="searchKeyword" 
+            placeholder="输入题目编号或标题" 
+            class="min-w-[97%]"
+            @input="handleSearchInputChange"
+          />
+          <div v-if="isLoadingProblems" class="absolute right-3 top-2">
+            <div class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+          </div>
+        </div>
+        
+        <!-- 显示加载错误 -->
+        <div v-if="loadingError" class="mb-4 p-3 bg-red-100 dark:bg-red-900/20 rounded-lg text-red-700 dark:text-red-400">
+          {{ loadingError }}
+        </div>
         
         <!-- 搜索结果列表 -->
         <div class="max-h-[50vh] overflow-y-auto mb-4">
-          <div v-for="problem in filteredProblems" 
+          <div v-if="availableProblems.length === 0 && !isLoadingProblems" class="text-center py-4 text-gray-500">
+            未找到匹配的题目
+          </div>
+          
+          <div v-for="problem in availableProblems" 
                :key="problem.id"
                @click="applyProblemSelection(problem)"
                class="flex items-center justify-between p-3 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg cursor-pointer">
-            <span>{{ problem.id }} - {{ problem.title }}</span>
+            <div class="flex flex-col">
+              <span class="font-medium">{{ problem.id }} - {{ problem.title }}</span>
+              <span class="text-sm text-gray-500">{{ problem.tags.join(', ') }}</span>
+            </div>
             <span :class="getDifficultyColor(problem.difficulty)">
               {{ problem.difficulty }}
             </span>
+          </div>
+          
+          <!-- 加载更多按钮 -->
+          <div v-if="availableProblems.length < totalProblemCount" class="text-center py-2">
+            <fluent-button 
+              appearance="lightweight" 
+              @click="loadMoreProblems"
+              :disabled="isLoadingProblems"
+            >
+              {{ isLoadingProblems ? '加载中...' : '加载更多' }}
+            </fluent-button>
           </div>
         </div>
 
