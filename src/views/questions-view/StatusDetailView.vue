@@ -54,11 +54,11 @@ const getStatusIcon = (status: string): string => {
     'TimeLimitExceeded': 'fluent:timer-20-filled',
     'MemoryLimitExceeded': 'fluent:warning-20-filled',
     'RuntimeError': 'fluent:error-circle-20-filled',
-    'CompileError': 'fluent:code-20-filled',
+    'CompilationError': 'fluent:code-20-filled',
     'Time Limit Exceeded': 'fluent:timer-20-filled',
     'Memory Limit Exceeded': 'fluent:warning-20-filled',
     'Runtime Error': 'fluent:error-circle-20-filled',
-    'Compile Error': 'fluent:code-20-filled'
+    'Compilation Error': 'fluent:code-20-filled'
   }
   return iconMap[status] || 'fluent:question-circle-20-filled'
 }

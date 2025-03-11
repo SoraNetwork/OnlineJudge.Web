@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, shallowRef } from 'vue'
+import { ref, onMounted, shallowRef, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import * as monaco from 'monaco-editor'
@@ -11,6 +11,8 @@ import { message } from "@/services/MessageService"; // 导入消息服务
 const route = useRoute();
 const router = useRouter();
 const problemId = route.params.id as string;
+// 获取可能存在的比赛ID
+const contestId = route.params.fromcontestid as string | undefined;
 
 const problem = ref({
   id: 'P1001',
@@ -49,6 +51,8 @@ const languages = [
   }
 ];
 
+// 计算是否来自比赛
+const isFromContest = computed(() => !!contestId);
 
 const code = ref('');
 const selectedLanguage = ref(languages[0]); // 修改为存储完整的语言对象
@@ -107,7 +111,8 @@ const handleSubmit = async () => {
     const response = await submitCode({
       questionId: problemId,
       language: selectedLanguage.value.value,
-      code: code.value
+      code: code.value,
+      contestId: contestId // 传递比赛ID（如果存在）
     });
     
     if (response.success && response.data) {
@@ -127,7 +132,12 @@ const handleSubmit = async () => {
 };
 
 const handleBack = () => {
-  router.back();
+  // 返回上一页，如果有比赛ID，则返回到比赛题目页面
+  if (contestId) {
+    router.push(`/questions/${problemId}/${contestId}`);
+  } else {
+    router.back();
+  }
 };
 
 const tips = [
@@ -184,6 +194,8 @@ onMounted(() => {
               </fluent-button>
               {{ problem.id }}. {{ problem.title }}
               <TokenItem :Token="problem.difficulty" Glyph="fluent:target-20-filled"/>
+              <!-- 添加比赛标识 -->
+              <TokenItem v-if="isFromContest" :Token="`来自比赛 #${contestId}`" Glyph="fluent:trophy-20-filled" class="ml-2"/>
             </h1>
           </div>
         </div>
@@ -235,7 +247,7 @@ onMounted(() => {
               class="w-auto h-auto" 
               Glyph="fluent:send-20-filled" 
               :onclick="handleSubmit" 
-              Text="提交代码"
+              :Text="isFromContest ? '提交比赛答案' : '提交代码'"
               :disabled="isSubmitting"
               :loading="isSubmitting"
             />
@@ -265,8 +277,15 @@ onMounted(() => {
               <span>{{ tip.text }}</span>
             </div>
           </div>
+          
+          <!-- 添加比赛提示 -->
+          <div v-if="isFromContest" class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700">
+            <div class="flex items-start gap-3 text-sm text-accent font-medium">
+              <Icon icon="fluent:trophy-20-filled" class="w-5 h-5 mt-0.5 flex-shrink-0 text-accent"/>
+              <span>您正在比赛中提交代码，提交结果将计入比赛成绩</span>
+            </div>
+          </div>
         </div>
-
       </div>
     </div>
   </div>

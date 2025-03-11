@@ -26,8 +26,8 @@ interface Submission {
   username: string;
   status: string;
   language: string;
-  time: string;
-  memory: string;
+  timeUsed: string;
+  memoryUsed: string;
   submitTime: string;
   code: string;
 }
@@ -112,6 +112,9 @@ const loadSubmissions = async () => {
     const params = {
       questionId: filters.value.problemId || undefined,
       status: filters.value.status || undefined,
+      languageCode: filters.value.language || undefined,
+      userName: filters.value.username || undefined,
+      getAllUsers: true,
       pageIndex: pagination.value.currentPage,
       pageSize: pagination.value.pageSize
     }
@@ -205,9 +208,9 @@ const formatDateTime = (dateTimeStr: string) => {
 // 格式化内存显示
 const formatMemory = (memoryInKB: number) => {
   if (memoryInKB < 1024) {
-    return `${memoryInKB.toFixed(2)} KB`
+    return `${memoryInKB.toFixed(2)} B`
   } else {
-    return `${(memoryInKB / 1024).toFixed(2)} MB`
+    return `${(memoryInKB / 1024).toFixed(2)} KB`
   }
 }
 
@@ -375,7 +378,7 @@ const formatStatusDisplay = (statusValue: string): string => {
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 dark:text-neutral-400">
-                {{ submission.executionTime }}ms / {{ formatMemory(submission.memoryUsage) }}
+                {{ submission.timeUsed }}ms / {{ formatMemory(submission.memoryUsed) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 dark:text-neutral-400">
                 {{ formatDateTime(submission.submitTime) }}
@@ -415,7 +418,7 @@ const formatStatusDisplay = (statusValue: string): string => {
               </div>
 
               <div class="text-neutral-500 dark:text-neutral-400">
-                {{ submission.executionTime }}ms / {{ formatMemory(submission.memoryUsage) }}
+                {{ submission.timeUsed }}ms / {{ formatMemory(submission.memoryUsed) }}
               </div>
 
               <div class="text-neutral-500 dark:text-neutral-400">

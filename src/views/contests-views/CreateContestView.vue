@@ -6,6 +6,7 @@ import TokenItem from '@/components/TokenItem.vue'
 import { Dialog } from '@fluentui/web-components'
 import { createContest, type CreateContestRequest } from '@/api/contestApi'
 import { getQuestions, type Question, type GetQuestionsParams } from '@/api/questionApi'
+import { message } from '@/services/MessageService' // 导入消息服务
 
 const router = useRouter()
 
@@ -183,8 +184,12 @@ const calculateDuration = () => {
   if (contestForm.value.startTime && contestForm.value.endTime) {
     const start = new Date(contestForm.value.startTime)
     const end = new Date(contestForm.value.endTime)
-    const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-    contestForm.value.duration = hours.toString()
+    // 计算小时差，并向上取整到最接近的整数
+    const hoursDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60))
+    
+    // 检查是否为预定义的时长选项
+    const predefinedOption = durationOptions.find(option => parseInt(option.value) === hoursDiff)
+    contestForm.value.duration = predefinedOption ? predefinedOption.value : hoursDiff.toString()
   }
 }
 
@@ -192,36 +197,53 @@ const calculateDuration = () => {
 const calculateEndTime = () => {
   if (contestForm.value.startTime && contestForm.value.duration) {
     const start = new Date(contestForm.value.startTime)
-    const end = new Date(start.getTime() + parseInt(contestForm.value.duration) * 60 * 60 * 1000)
-    contestForm.value.endTime = end.toISOString().slice(0, 16) // 格式化为 yyyy-MM-ddThh:mm
+    const durationHours = parseInt(contestForm.value.duration)
+    
+    // 确保durationHours是有效数字
+    if (!isNaN(durationHours)) {
+      const end = new Date(start.getTime() + durationHours * 60 * 60 * 1000)
+      // 格式化为 yyyy-MM-ddThh:mm
+      const year = end.getFullYear()
+      const month = String(end.getMonth() + 1).padStart(2, '0')
+      const day = String(end.getDate()).padStart(2, '0')
+      const hours = String(end.getHours()).padStart(2, '0')
+      const minutes = String(end.getMinutes()).padStart(2, '0')
+      
+      contestForm.value.endTime = `${year}-${month}-${day}T${hours}:${minutes}`
+    }
   }
 }
 
 // 监听开始时间和结束时间变化
 const handleStartTimeChange = () => {
-  if (contestForm.value.endTime) {
-    calculateDuration()
-  } else if (contestForm.value.duration) {
-    calculateEndTime()
+  if (contestForm.value.startTime) {
+    if (contestForm.value.endTime) {
+      calculateDuration() // 如果结束时间存在，重新计算时长
+    } else if (contestForm.value.duration) {
+      calculateEndTime() // 如果时长存在，计算结束时间
+    }
   }
 }
 
 const handleEndTimeChange = () => {
-  calculateDuration()
+  if (contestForm.value.endTime && contestForm.value.startTime) {
+    calculateDuration() // 当结束时间变化时，重新计算时长
+  }
 }
 
 // 处理时长选择
 const handleDurationSelect = (hours: string) => {
   contestForm.value.duration = hours
   if (contestForm.value.startTime) {
-    calculateEndTime()
+    calculateEndTime() // 当时长变化时，重新计算结束时间
   }
 }
 
 // 添加创建状态控制
 const isSubmitting = ref(false)
-const submitError = ref<string | null>(null)
-const submitSuccess = ref(false)
+// 移除局部错误状态，改用全局消息
+// const submitError = ref<string | null>(null)
+// const submitSuccess = ref(false)
 
 // 提交表单
 const handleSubmit = async () => {
@@ -229,29 +251,28 @@ const handleSubmit = async () => {
   
   // 验证表单
   if (!contestForm.value.title) {
-    submitError.value = '请输入比赛标题'
+    message.error('请输入比赛标题')
     return
   }
   
   if (!contestForm.value.startTime) {
-    submitError.value = '请选择开始时间'
+    message.error('请选择开始时间')
     return
   }
   
   if (!contestForm.value.endTime) {
-    submitError.value = '请选择结束时间'
+    message.error('请选择结束时间')
     return
   }
   
   // 检查是否所有题目都已选择
   const hasInvalidProblem = contestForm.value.problems.some(p => !p.problemId)
   if (hasInvalidProblem) {
-    submitError.value = '请为所有题目选择题目'
+    message.error('请为所有题目选择题目')
     return
   }
   
   isSubmitting.value = true
-  submitError.value = null
   
   try {
     // 准备请求数据
@@ -278,17 +299,17 @@ const handleSubmit = async () => {
     const response = await createContest(requestData)
     
     if (response.success) {
-      submitSuccess.value = true
-      // 显示成功消息，延迟跳转
+      message.success('比赛创建成功')
+      // 延迟跳转
       setTimeout(() => {
         router.push('/contests')
       }, 1500)
     } else {
-      submitError.value = response.message || '创建比赛失败，请稍后再试'
+      message.error(response.message || '创建比赛失败，请稍后再试')
     }
   } catch (err) {
     console.error('创建比赛时出错:', err)
-    submitError.value = '创建比赛时出错'
+    message.error('创建比赛时出错')
   } finally {
     isSubmitting.value = false
   }
@@ -359,16 +380,8 @@ const applyProblemSelection = (problem: Question) => {
           </button>
         </div>
         
-        <!-- 显示提交错误或成功信息 -->
-        <div v-if="submitError" class="mb-6 p-3 bg-red-100 dark:bg-red-900/20 rounded-lg text-red-700 dark:text-red-400">
-          {{ submitError }}
-        </div>
+        <!-- 移除本地错误和成功提示 -->
         
-        <div v-if="submitSuccess" class="mb-6 p-3 bg-green-100 dark:bg-green-900/20 rounded-lg text-green-700 dark:text-green-400 flex items-center gap-2">
-          <Icon icon="fluent:checkmark-circle-20-filled" class="w-5 h-5" />
-          比赛创建成功，即将跳转到比赛列表
-        </div>
-
         <!-- 基本信息 -->
         <div class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -632,10 +645,7 @@ const applyProblemSelection = (problem: Question) => {
           </div>
         </div>
         
-        <!-- 显示加载错误 -->
-        <div v-if="loadingError" class="mb-4 p-3 bg-red-100 dark:bg-red-900/20 rounded-lg text-red-700 dark:text-red-400">
-          {{ loadingError }}
-        </div>
+        <!-- 修改加载错误显示为使用全局消息 -->
         
         <!-- 搜索结果列表 -->
         <div class="max-h-[50vh] overflow-y-auto mb-4">

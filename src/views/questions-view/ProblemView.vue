@@ -19,7 +19,7 @@ import { getQuestionById } from '@/api/questionApi'
 
 const route = useRoute();
 const problemId = route.params.id;
-const fromcontestId = route.params.fromcontestId;
+const fromcontestId = route.params.fromcontestid;
 
 const problem = ref({
   id: '',
@@ -75,6 +75,9 @@ const displaySubmissions = computed(() => {
     : submissions.value.otherSubmissions
 })
 
+// 计算是否来自比赛
+const isFromContest = computed(() => !!fromcontestId);
+
 onMounted(async () => {
   try {
     isLoading.value = true;
@@ -122,10 +125,11 @@ const handleSave = () => {
 };
 
 const handleSubmit = () => {
-  if (fromcontestId != null){
-    router.push(`/questions/${problemId}/${fromcontestId}/submit`);
+  if (fromcontestId) {
+    router.push(`/questions/${problemId}/submit/${fromcontestId}`);
+  } else {
+    router.push(`/questions/${problemId}/submit`);
   }
-  router.push(`/questions/${problemId}/submit`);
 };
 
 const handleEditorChange = (v) => {
@@ -162,6 +166,8 @@ const handleBack = () => {
               </fluent-button>
               {{ problem.id }}. {{ problem.title }}
               <TokenItem :Token="problem.difficulty" Glyph="fluent:target-20-filled"/>
+              <!-- 添加比赛标识 -->
+              <TokenItem v-if="isFromContest" :Token="`来自比赛 #${fromcontestId}`" Glyph="fluent:trophy-20-filled" class="ml-2"/>
             </h1>
             <div class="mt-2 flex flex-wrap items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
               <span>时间限制: {{ problem.timeLimit }}ms</span>

@@ -3,35 +3,84 @@ import AnnounceBar from "@/components/AnnounceBar.vue";
 import TokenItem from "@/components/TokenItem.vue";
 import RecommendedProblems from "@/components/RecommendedProblems.vue";
 import { Icon } from "@iconify/vue";
-import { ref } from "vue";
-import { useRouter, type RouteLocationAsPathGeneric, type RouteLocationAsRelativeGeneric } from "vue-router";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { isLoggedIn, userInfo, clearLoginState } from '@/stores/userStore.ts';
 import { login, register, getUserProfile, updateUserProfile } from '@/api/userApi.ts';
 import RecentSubmissions from "@/components/RecentSubmissions.vue";
+import { getContests } from '@/api/contestApi';
+import { getQuestions } from '@/api/questionApi';
 
 document.title = "Sora Online Judge • 主页";
 
-// 模拟数据，实际使用时应该从API获取
-const recentContests = [
-  { id: 1, title: "每周算法练习赛 #1", startTime: "2024-02-01 14:00", status: "即将开始" },
-  { id: 2, title: "新手入门赛", startTime: "2024-01-28 19:00", status: "进行中" },
-  { id: 3, title: "寒假集训营", startTime: "2024-01-25 09:00", status: "已结束" },
-];
-
-const recommendedProblems = [
-  { id: "P1001", title: "A + B Problem", difficulty: "入门", acceptance: "95%" },
-  { id: "P1002", title: "过河卒", difficulty: "简单", acceptance: "45%" },
-  { id: "P1003", title: "铺地毯", difficulty: "中等", acceptance: "35%" },
-  { id: "P1004", title: "方格取数", difficulty: "困难", acceptance: "25%" },
-];
-
-const topUsers = [
+// 使用响应式数据代替静态数据
+const recentContests = ref<any[]>([]);
+const recommendedProblems = ref<any[]>([]);
+const topUsers = ref([
   { avatar:"", rank: 1, username: "tourist", rating: 3000, solved: 1500 },
   { avatar:"", rank: 2, username: "Petr", rating: 2800, solved: 1200 },
   { avatar:"", rank: 3, username: "jiangly", rating: 2750, solved: 1100 },
-];
+]);
 
 const router = useRouter();
+const loading = ref({
+  contests: false,
+  problems: false,
+});
+const error = ref({
+  contests: '',
+  problems: '',
+});
+
+// 加载最近比赛数据
+const loadRecentContests = async () => {
+  loading.value.contests = true;
+  try {
+    const response = await getContests({ pageSize: 3, sortBy: 'startTime' });
+    if (response.success && response.data) {
+      recentContests.value = response.data;
+    } else {
+      error.value.contests = response.message || "获取比赛列表失败";
+    }
+  } catch (err) {
+    error.value.contests = "获取比赛数据时出错";
+    console.error('获取比赛列表失败:', err);
+  } finally {
+    loading.value.contests = false;
+  }
+};
+
+// 加载推荐题目数据
+const loadRecommendedProblems = async () => {
+  loading.value.problems = true;
+  try {
+    const response = await getQuestions({ pageSize: 4 });
+    if (response.success && response.data) {
+      recommendedProblems.value = response.data.items.map(item => ({
+        id: item.id,
+        title: item.title,
+        difficulty: item.difficulty,
+        // 计算通过率，使用acceptCount和submitCount
+        acceptance: item.submitCount && item.submitCount > 0 
+          ? `${Math.round((item.acceptCount || 0) / item.submitCount * 100)}%` 
+          : "未知"
+      }));
+    } else {
+      error.value.problems = response.message || "获取题目列表失败";
+    }
+  } catch (err) {
+    error.value.problems = "获取题目数据时出错";
+    console.error('获取题目列表失败:', err);
+  } finally {
+    loading.value.problems = false;
+  }
+};
+
+// 在组件挂载时加载数据
+onMounted(() => {
+  loadRecentContests();
+  loadRecommendedProblems();
+});
 
 const handleLogin = () => {
   // 处理登录逻辑
@@ -61,20 +110,6 @@ const navigate = (path: string)=>{
 const getInitials = (name: string) => {
   return name ? name.charAt(0).toUpperCase() : '?';
 };
-
-// 修改 recentContests 的数据结构，将 QuestionId 改为 questionId
-const recentSubmissions = [
-  { 
-    questionId: "P1002",  // 改为小写的 questionId
-    id: "S1001", 
-    status: "Accepted", 
-    time: "1ms", 
-    memory: "256KB", 
-    language: "C++", 
-    submitTime: "2024-01-01 12:00" 
-  },
-  // ...其他提交记录
-];
 </script>
 
 <template>
@@ -198,14 +233,73 @@ const recentSubmissions = [
       <!-- 右侧面板：题目列表和比赛 -->
       <div class="md:w-2/3 flex flex-col gap-6">
         <!-- 题目列表 -->
-        <RecommendedProblems :link_flag="true" title="推荐题目"/>
+        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">推荐题目</h2>
+            <a @click="navigate('/questions')" class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
+          </div>
+          
+          <!-- 加载状态 -->
+          <div v-if="loading.problems" class="flex justify-center py-10">
+            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+          
+          <!-- 错误状态 -->
+          <div v-else-if="error.problems" class="text-center py-10 text-red-500">
+            {{ error.problems }}
+          </div>
+          
+          <!-- 数据为空 -->
+          <div v-else-if="recommendedProblems.length === 0" class="text-center py-10 text-neutral-500">
+            暂无推荐题目
+          </div>
+          
+          <!-- 题目列表 -->
+          <div v-else class="grid grid-cols-1">
+            <div v-for="problem in recommendedProblems" :key="problem.id"
+                @click="navigate(`/questions/${problem.id}`)"
+                class="flex justify-between items-center p-3 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer transition-colors rounded-lg">
+              <div class="flex items-center gap-3">
+                <span class="font-medium text-blue-600 dark:text-blue-400">{{ problem.id }}</span>
+                <span>{{ problem.title }}</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <span :class="{
+                  'text-green-600 dark:text-green-400': problem.difficulty === '入门',
+                  'text-blue-600 dark:text-blue-400': problem.difficulty === '简单',
+                  'text-yellow-600 dark:text-yellow-400': problem.difficulty === '中等',
+                  'text-red-600 dark:text-red-400': problem.difficulty === '困难'
+                }">{{ problem.difficulty }}</span>
+                <span class="text-neutral-600 dark:text-neutral-400">{{ problem.acceptance }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- 最近比赛 -->
         <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">最近比赛</h2>
             <a @click="navigate('/contests')" class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- 加载状态 -->
+          <div v-if="loading.contests" class="flex justify-center py-10">
+            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+          
+          <!-- 错误状态 -->
+          <div v-else-if="error.contests" class="text-center py-10 text-red-500">
+            {{ error.contests }}
+          </div>
+          
+          <!-- 数据为空 -->
+          <div v-else-if="recentContests.length === 0" class="text-center py-10 text-neutral-500">
+            暂无近期比赛
+          </div>
+          
+          <!-- 比赛列表 -->
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-for="contest in recentContests" :key="contest.id"
             @click="navigate(`contests/${contest.id}`)"
             class="bg-neutral-50 dark:bg-neutral-800 rounded-lg border-1 border-neutral-200 dark:border-neutral-700 p-6 hover:border-blue-500 transition-colors cursor-pointer group">

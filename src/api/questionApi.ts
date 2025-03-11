@@ -22,6 +22,8 @@ export interface Question {
   visibility: string[];
   tags: string[];
   difficulty: string;
+  acceptCount?: number; // 添加可选的接受数量字段
+  submitCount?: number; // 添加可选的提交数量字段
 }
 
 // 定义问题详情的数据类型
@@ -35,12 +37,10 @@ export interface QuestionDetail {
   difficulty: string;
   timeLimit: number;
   memoryLimit: number;
-  acceptance: string;
-  author: {
-    username: string;
-    nickname: string;
-    avatar: string;
-  };
+  acceptCount?: number; // 添加可选的接受数量字段
+  submitCount?: number; // 添加可选的提交数量字段
+  creatorId: string;
+  creatorName: string;
 }
 
 // 定义分页结果的接口
@@ -98,6 +98,7 @@ export interface SubmitCodeRequest {
   questionId: string;
   code: string;
   language: string;
+  contestId?: string; // 添加可选的比赛ID
 }
 
 // 定义提交代码的响应接口
@@ -138,6 +139,9 @@ export interface SubmissionDetail {
 export interface GetSubmissionsParams {
   questionId?: string;
   status?: string;
+  languageCode?: string; // 新增：编程语言代码过滤
+  userName?: string;    // 新增：用户名过滤
+  getAllUsers?: boolean; // 新增：是否获取所有用户的提交记录
   pageIndex?: number;
   pageSize?: number;
 }
@@ -151,8 +155,8 @@ export interface SubmissionRecord {
   status: string;
   language: string;
   submitTime: string;
-  executionTime: number;
-  memoryUsage: number;
+  memoryUsed: number;
+  timeUsed: number;
 }
 
 /**
@@ -357,6 +361,18 @@ export const getSubmissions = async (params: GetSubmissionsParams = {}): Promise
     
     if (params.status) {
       queryParams.append('status', params.status);
+    }
+    
+    if (params.languageCode) {
+      queryParams.append('languageCode', params.languageCode);
+    }
+    
+    if (params.userName) {
+      queryParams.append('userName', params.userName);
+    }
+    
+    if (params.getAllUsers !== undefined) {
+      queryParams.append('getAllUsers', params.getAllUsers.toString());
     }
     
     if (params.pageIndex !== undefined) {

@@ -194,6 +194,11 @@ function navigate(questionId: string) {
                     <TokenItem :Token="question.difficulty || '未知'" :Glyph="getDifficultyIcon(question.difficulty)" />
                   </td>
                   <td class="py-4">{{ question.creatorName }}</td>
+                  <td class="py-4">
+                    {{ question.submitCount && question.submitCount > 0 
+                      ? `${Math.round((question.acceptCount || 0) / question.submitCount * 100)}%` 
+                      : "未知" }}
+                  </td>
                   <td class="py-4">{{ new Date(question.createTime).toLocaleDateString() }}</td>
                 </tr>
               </tbody>

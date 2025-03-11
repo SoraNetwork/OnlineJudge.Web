@@ -59,7 +59,7 @@ const router = createRouter({
       component: ProblemView,
     },
     {
-      path: '/questions/:id/submit',
+      path: '/questions/:id/submit/:fromcontestid?',
       name: 'submit',
       component: SubmitView,
     },
