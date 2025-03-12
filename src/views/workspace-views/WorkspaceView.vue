@@ -167,7 +167,7 @@ const navigate = (path: string) => {
           </div>
           <p class="text-neutral-600 dark:text-neutral-400">创建编程比赛，设置题目、时间和参与规则</p>
         </fluent-card>
-
+<!--
         <fluent-card class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl" @click="navigate('/teams/create')">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
@@ -177,6 +177,7 @@ const navigate = (path: string) => {
           </div>
           <p class="text-neutral-600 dark:text-neutral-400">创建新的团队，邀请成员和设置团队信息</p>
         </fluent-card>
+-->
       </div>
     </section>
 
@@ -191,6 +192,7 @@ const navigate = (path: string) => {
     </section>
 
     <!-- 我的团队 -->
+    <!--
     <section class="rounded-2xl border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
       <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
         <Icon icon="fluent:people-team-20-filled" class="w-5 h-5 text-cyan-600" />
@@ -223,6 +225,6 @@ const navigate = (path: string) => {
           </div>
         </fluent-card>
       </div>
-    </section>
+    </section>-->
   </div>
 </template>

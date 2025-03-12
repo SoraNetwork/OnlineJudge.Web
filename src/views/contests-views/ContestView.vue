@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import TokenItem from '@/components/TokenItem.vue'
-import { getContestById, joinContest, type ContestDetail } from '@/api/contestApi'
+import { getContestById, joinContest, getContestRankings, type ContestDetail, type ContestRanking } from '@/api/contestApi'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,6 +17,7 @@ const contest = ref<ContestDetail | null>(null)
 // 比赛题目列表
 const problems = ref<{
   id: string;
+  problemid: string;
   title: string;
   difficulty: string;
   acceptance: string;
@@ -38,13 +39,18 @@ const loadContestDetail = async () => {
       if (response.data.problems) {
         problems.value = response.data.problems.map(p => ({
           id: p.displayId,
+          problemid: p.problemId,
           title: p.title,
           difficulty: p.difficulty,
           acceptance: '未知', // API未返回此字段
           solved: false // 需要从用户提交记录确定
         }))
       }
+
+      problems.value.sort((a, b) => a.id.localeCompare(b.id))
       
+      // 加载比赛排行榜数据
+      await loadRankings()
     } else {
       error.value = response.message || '加载比赛详情失败'
     }
@@ -60,61 +66,63 @@ onMounted(() => {
   loadContestDetail()
 })
 
-// 排行榜
-const rankings = ref([
-  { 
-    rank: 1, 
-    username: 'user1', 
-    totalScore: 400, 
-    solved: 4, 
-    penalty: 240,
-    problemScores: [
-      { status: 'AC', score: 100, attempts: 1 },
-      { status: 'AC', score: 100, attempts: 1 },
-      { status: 'AC', score: 100, attempts: 2 },
-      { status: 'AC', score: 100, attempts: 1 }
-    ]
-  },
-  { 
-    rank: 2, 
-    username: 'user2', 
-    totalScore: 300, 
-    solved: 3, 
-    penalty: 180,
-    problemScores: [
-      { status: 'AC', score: 100, attempts: 1 },
-      { status: '-', score: 0, attempts: 0 },  // 未尝试
-      { status: 'WA', score: 0, attempts: 2 }, // 尝试但未通过
-      { status: 'AC', score: 100, attempts: 3 }
-    ]
-  },
-  { 
-    rank: 3, 
-    username: 'user3', 
-    totalScore: 200, 
-    solved: 2, 
-    penalty: 150,
-    problemScores: [
-      { status: 'AC', score: 100, attempts: 2 },
-      { status: 'PARTIAL', score: 70, attempts: 1 }, // 部分正确的示例
-      { status: 'WA', score: 0, attempts: 3 },
-      { status: '-', score: 0, attempts: 0 }
-    ]
-  },
-  { 
-    rank: 4, 
-    username: 'user4', 
-    totalScore: 100, 
-    solved: 1, 
-    penalty: 60,
-    problemScores: [
-      { status: 'AC', score: 100, attempts: 1 },
-      { status: 'WA', score: 0, attempts: 1 },
-      { status: '-', score: 0, attempts: 0 },
-      { status: '-', score: 0, attempts: 0 }
-    ]
+// 排行榜状态管理
+const rankingsLoading = ref(false)
+const rankingsError = ref<string | null>(null)
+const rankings = ref<{
+  rank: number;
+  username: string;
+  totalScore: number;
+  solved: number;
+  penalty: number;
+  problemScores: {
+    status: string;
+    score: number;
+    attempts: number;
+  }[];
+}[]>([])
+
+// 加载排行榜数据
+const loadRankings = async () => {
+  rankingsLoading.value = true
+  rankingsError.value = null
+  
+  try {
+    const response = await getContestRankings(contestId)
+    
+    if (response.success && response.data) {
+      // 转换API返回的排行榜数据为组件所需格式
+      rankings.value = response.data.participants.map(participant => ({
+        rank: participant.rank,
+        username: participant.username,
+        totalScore: participant.totalScore,
+        solved: participant.solved,
+        penalty: participant.penalty,
+        problemScores: participant.problemScores.map(score => ({
+          status: score.status,
+          score: score.score,
+          attempts: score.attempts
+        }))
+      }))
+      
+      // 更新当前用户信息
+      const currentUserData = response.data.participants.find(p => 
+        p.username === currentUser.value.username
+      )
+      
+      if (currentUserData) {
+        currentUser.value.isParticipant = true
+      }
+    } else {
+      rankingsError.value = response.message || '加载排行榜失败'
+    }
+  } catch (err) {
+    console.error('获取比赛排行榜失败:', err)
+    rankingsError.value = '获取排行榜时出错'
+  } finally {
+    rankingsLoading.value = false
   }
-])
+}
 
 // 当前选中的标签页
 const activeTab = ref('problems')
@@ -253,6 +261,11 @@ const currentUserRanking = computed(() => {
 // 重试加载
 const retryLoad = () => {
   loadContestDetail()
+}
+
+// 重试加载排行榜
+const retryLoadRankings = () => {
+  loadRankings()
 }
 </script>
 
@@ -424,9 +437,9 @@ const retryLoad = () => {
                 <tr v-for="problem in problems" 
                     :key="problem.id"
                     class="transition-colors cursor-pointer group dark:hover:bg-neutral-800 cursor-pointer transition-colors duration-200"
-                    @click="handleProblemClick(problem.id)">
+                    @click="handleProblemClick(problem.problemid)">
                   <td class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors px-6 py-4 whitespace-nowrap">
-                    {{ problem.id }}
+                    {{ problem.id }} - {{ problem.problemid }}
                   </td>
                   <td class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors px-6 py-4 whitespace-nowrap">
                     {{ problem.title }}
@@ -452,8 +465,24 @@ const retryLoad = () => {
 
         <!-- 排行榜 -->
         <div v-else-if="activeTab === 'rankings'" class="mt-6">
+          <!-- 加载中状态 -->
+          <div v-if="rankingsLoading" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+
+          <!-- 错误状态 -->
+          <div v-else-if="rankingsError" class="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-6">
+            <p>{{ rankingsError }}</p>
+            <button 
+              @click="retryLoadRankings"
+              class="mt-2 px-3 py-1 bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 rounded hover:bg-red-300 dark:hover:bg-red-700 transition"
+            >
+              重试
+            </button>
+          </div>
+
           <!-- 当前用户排名信息 -->
-          <div v-if="currentUserRanking" 
+          <div v-else-if="currentUserRanking" 
               class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-4">
@@ -467,7 +496,8 @@ const retryLoad = () => {
             </div>
           </div>
           
-          <div class="overflow-x-auto">
+          <!-- 排行榜表格 -->
+          <div v-if="!rankingsLoading && !rankingsError" class="overflow-x-auto">
             <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
               <thead class="bg-neutral-50 dark:bg-neutral-800">
                 <tr>

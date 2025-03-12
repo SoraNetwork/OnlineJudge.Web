@@ -12,7 +12,7 @@ const route = useRoute();
 const router = useRouter();
 const problemId = route.params.id as string;
 // 获取可能存在的比赛ID
-const contestId = route.params.fromcontestid as string | undefined;
+const contestId = route.params.fromcontestid as string | null;
 
 const problem = ref({
   id: 'P1001',
@@ -112,7 +112,7 @@ const handleSubmit = async () => {
       questionId: problemId,
       language: selectedLanguage.value.value,
       code: code.value,
-      contestId: contestId // 传递比赛ID（如果存在）
+      contestId: contestId ? contestId : null // 传递比赛ID（如果存在）
     });
     
     if (response.success && response.data) {

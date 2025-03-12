@@ -98,7 +98,7 @@ export interface SubmitCodeRequest {
   questionId: string;
   code: string;
   language: string;
-  contestId?: string; // 添加可选的比赛ID
+  contestId: string | null; // 添加可选的比赛ID
 }
 
 // 定义提交代码的响应接口

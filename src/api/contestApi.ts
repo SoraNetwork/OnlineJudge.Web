@@ -208,6 +208,52 @@ export const createContest = async (request: CreateContestRequest): Promise<ApiR
   }
 };
 
+// 定义排行榜接口
+export interface ContestRanking {
+  problems: {
+    problemId: string;
+    displayId: string;
+    title: string;
+    difficulty: string;
+    score: number;
+  }[];
+  participants: {
+    rank: number;
+    userId: string;
+    username: string;
+    totalScore: number;
+    solved: number;
+    penalty: number;
+    problemScores: {
+      problemId: string;
+      status: string;
+      score: number;
+      attempts: number;
+    }[];
+  }[];
+}
+
+/**
+ * 获取比赛排行榜
+ * @param contestId 比赛ID
+ * @returns 比赛排行榜
+ */
+export const getContestRankings = async (contestId: string): Promise<ApiResponse<ContestRanking>> => {
+  try {
+    const response = await fetch(getApiUrl(`/Contest/${contestId}/rankings`), {
+      method: 'GET',
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error('获取比赛排行榜失败:', error);
+    return {
+      success: false,
+      message: '网络错误，请稍后再试'
+    };
+  }
+};
+
 // 保留axios版本的接口用于后续迁移
 export const contestApiAxios = {
   getContests: (params: GetContestsParams = {}) => {
@@ -226,6 +272,12 @@ export const contestApiAxios = {
   
   createContest: (request: CreateContestRequest) => {
     return apiClient.post('/Contest', request, {
+      headers: getAuthHeaders()
+    });
+  },
+  
+  getContestRankings: (contestId: string) => {
+    return apiClient.get(`/Contest/${contestId}/rankings`, {
       headers: getAuthHeaders()
     });
   }

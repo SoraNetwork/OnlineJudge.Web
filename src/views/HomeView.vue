@@ -17,9 +17,9 @@ document.title = "Sora Online Judge • 主页";
 const recentContests = ref<any[]>([]);
 const recommendedProblems = ref<any[]>([]);
 const topUsers = ref([
-  { avatar:"", rank: 1, username: "tourist", rating: 3000, solved: 1500 },
-  { avatar:"", rank: 2, username: "Petr", rating: 2800, solved: 1200 },
-  { avatar:"", rank: 3, username: "jiangly", rating: 2750, solved: 1100 },
+  { avatar: "", rank: 1, username: "tourist", rating: 3000, solved: 1500 },
+  { avatar: "", rank: 2, username: "Petr", rating: 2800, solved: 1200 },
+  { avatar: "", rank: 3, username: "jiangly", rating: 2750, solved: 1100 },
 ]);
 
 const router = useRouter();
@@ -61,8 +61,8 @@ const loadRecommendedProblems = async () => {
         title: item.title,
         difficulty: item.difficulty,
         // 计算通过率，使用acceptCount和submitCount
-        acceptance: item.submitCount && item.submitCount > 0 
-          ? `${Math.round((item.acceptCount || 0) / item.submitCount * 100)}%` 
+        acceptance: item.submitCount && item.submitCount > 0
+          ? `${Math.round((item.acceptCount || 0) / item.submitCount * 100)}%`
           : "未知"
       }));
     } else {
@@ -101,7 +101,7 @@ const handleLogout = () => {
   navigate('/');
 };
 
-const navigate = (path: string)=>{
+const navigate = (path: string) => {
   window.scrollTo(0, 0);
   router.push(path)
 }
@@ -122,22 +122,21 @@ const getInitials = (name: string) => {
       <!-- 左侧面板：个人信息和排行榜 -->
       <div class="flex flex-col gap-6 md:w-1/3">
         <!-- 个人信息/登录卡片 -->
-        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+        <div
+          class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div v-if="isLoggedIn" class="flex flex-col gap-4">
             <!-- 已登录状态 -->
             <div class="flex flex-col gap-4">
               <div class="flex items-center gap-4">
                 <!-- 添加头像/徽章 -->
                 <div v-if="userInfo?.avatar" class="w-12 h-12">
-                  <fluent-avatar
-                    :image="userInfo.avatar"
-                    :title="userInfo.nickname || userInfo.username"
-                  >
+                  <fluent-avatar :image="userInfo.avatar" :title="userInfo.nickname || userInfo.username">
                     <span slot="badge">{{ userInfo.nickname || userInfo.username }}</span>
                   </fluent-avatar>
                 </div>
                 <div v-else class="w-12 h-12">
-                  <fluent-badge appearance="accent" class="w-full h-full flex items-center justify-center text-xl font-medium">
+                  <fluent-badge appearance="accent"
+                    class="w-full h-full flex items-center justify-center text-xl font-medium">
                     {{ getInitials(userInfo?.nickname || userInfo?.username || '') }}
                   </fluent-badge>
                 </div>
@@ -153,27 +152,19 @@ const getInitials = (name: string) => {
                 </div>
               </div>
               <div class="flex gap-2 self-end">
-                <TokenItem
-                  class="cursor-pointer" 
-                  Token="查看资料" 
-                  Glyph="fluent:person-20-filled" 
-                  @click="router.push(`/profile/${userInfo?.username}`)" 
-                />
-                <TokenItem 
-                  class="cursor-pointer"
-                  Token="登出" 
-                  Glyph="fluent:sign-out-20-filled" 
-                  @click="handleLogout"
-                />
+                <TokenItem class="cursor-pointer" Token="查看资料" Glyph="fluent:person-20-filled"
+                  @click="router.push(`/profile/${userInfo?.username}`)" />
+                <TokenItem class="cursor-pointer" Token="登出" Glyph="fluent:sign-out-20-filled" @click="handleLogout" />
               </div>
             </div>
-            
+
             <!-- 最近提交 -->
             <div class="mt-2">
-              <RecentSubmissions :maxCount="2" :showQuestionLink="true" :showViewAllButton="true" v-if="userInfo" :submissions="userInfo!.recentSubmissions||[]" />
+              <RecentSubmissions :maxCount="2" :showQuestionLink="true" :showViewAllButton="true" v-if="userInfo"
+                :submissions="userInfo!.recentSubmissions || []" />
             </div>
           </div>
-          
+
           <!-- 未登录状态 -->
           <div v-else class="flex flex-col items-center gap-6 py-4">
             <div class="flex flex-col items-center gap-2">
@@ -194,10 +185,10 @@ const getInitials = (name: string) => {
         </div>
 
         <!-- 排行榜 -->
-        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+        <div
+          class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">排行榜</h2>
-            <a class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
           </div>
           <div class="flex flex-col">
             <div v-for="user in topUsers" :key="user.rank"
@@ -207,14 +198,12 @@ const getInitials = (name: string) => {
                 <!-- 添加头像/徽章 -->
                 <div class="w-8 h-8 flex items-center">
                   <div v-if="user.avatar" class="w-full h-full">
-                    <fluent-avatar
-                      :image="user.avatar"
-                      :title="user.username"
-                    >
+                    <fluent-avatar :image="user.avatar" :title="user.username">
                     </fluent-avatar>
                   </div>
                   <div v-else class="w-full h-full">
-                    <fluent-badge appearance="accent" class="w-full h-full flex items-center justify-center text-sm font-medium">
+                    <fluent-badge appearance="accent"
+                      class="w-full h-full flex items-center justify-center text-sm font-medium">
                       {{ getInitials(user.username) }}
                     </fluent-badge>
                   </div>
@@ -233,32 +222,35 @@ const getInitials = (name: string) => {
       <!-- 右侧面板：题目列表和比赛 -->
       <div class="md:w-2/3 flex flex-col gap-6">
         <!-- 题目列表 -->
-        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+        <div
+          class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">推荐题目</h2>
-            <a @click="navigate('/questions')" class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
+            <fluent-button @click="navigate('/questions')"
+              class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+              查看全部
+            </fluent-button>
           </div>
-          
+
           <!-- 加载状态 -->
           <div v-if="loading.problems" class="flex justify-center py-10">
             <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-          
+
           <!-- 错误状态 -->
           <div v-else-if="error.problems" class="text-center py-10 text-red-500">
             {{ error.problems }}
           </div>
-          
+
           <!-- 数据为空 -->
           <div v-else-if="recommendedProblems.length === 0" class="text-center py-10 text-neutral-500">
             暂无推荐题目
           </div>
-          
+
           <!-- 题目列表 -->
           <div v-else class="grid grid-cols-1">
-            <div v-for="problem in recommendedProblems" :key="problem.id"
-                @click="navigate(`/questions/${problem.id}`)"
-                class="flex justify-between items-center p-3 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer transition-colors rounded-lg">
+            <div v-for="problem in recommendedProblems" :key="problem.id" @click="navigate(`/questions/${problem.id}`)"
+              class="flex justify-between items-center p-3 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer transition-colors rounded-lg">
               <div class="flex items-center gap-3">
                 <span class="font-medium text-blue-600 dark:text-blue-400">{{ problem.id }}</span>
                 <span>{{ problem.title }}</span>
@@ -275,40 +267,43 @@ const getInitials = (name: string) => {
             </div>
           </div>
         </div>
-        
+
         <!-- 最近比赛 -->
-        <div class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
+        <div
+          class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">最近比赛</h2>
-            <a @click="navigate('/contests')" class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline text-sm">查看全部</a>
+            <fluent-button @click="navigate('/contests')"
+              class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+              查看全部
+            </fluent-button>
           </div>
-          
+
           <!-- 加载状态 -->
           <div v-if="loading.contests" class="flex justify-center py-10">
             <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-          
+
           <!-- 错误状态 -->
           <div v-else-if="error.contests" class="text-center py-10 text-red-500">
             {{ error.contests }}
           </div>
-          
+
           <!-- 数据为空 -->
           <div v-else-if="recentContests.length === 0" class="text-center py-10 text-neutral-500">
             暂无近期比赛
           </div>
-          
+
           <!-- 比赛列表 -->
           <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div v-for="contest in recentContests" :key="contest.id"
-            @click="navigate(`contests/${contest.id}`)"
-            class="bg-neutral-50 dark:bg-neutral-800 rounded-lg border-1 border-neutral-200 dark:border-neutral-700 p-6 hover:border-blue-500 transition-colors cursor-pointer group">
+            <div v-for="contest in recentContests" :key="contest.id" @click="navigate(`contests/${contest.id}`)"
+              class="bg-neutral-50 dark:bg-neutral-800 rounded-lg border-1 border-neutral-200 dark:border-neutral-700 p-6 hover:border-blue-500 transition-colors cursor-pointer group">
               <div class="flex justify-between items-start">
-                <h3 class="font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ contest.title }}</h3>
-                <TokenItem :Token="contest.status" 
-                  :Glyph="contest.status === '即将开始' ? 'fluent:calendar-clock-20-filled' : 
-                         contest.status === '进行中' ? 'fluent:play-circle-20-filled' : 'fluent:checkmark-circle-20-filled'"
-                />
+                <h3 class="font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{
+                  contest.title }}</h3>
+                <TokenItem :Token="contest.status"
+                  :Glyph="contest.status === '即将开始' ? 'fluent:calendar-clock-20-filled' :
+                    contest.status === '进行中' ? 'fluent:play-circle-20-filled' : 'fluent:checkmark-circle-20-filled'" />
               </div>
               <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-2">{{ contest.startTime }}</p>
             </div>

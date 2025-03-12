@@ -30,11 +30,17 @@ onMounted(() => {
   if (path != "") {
     if (path.startsWith('questions')) {
       tablist.activeid = "questions-table";
-    } else if (!router.hasRoute(path)) {
+    } else if (path.startsWith('contests')){
+      tablist.activeid = "contests-table"
+    } else if (path.startsWith('workspace')){
+      tablist.activeid= "workspace-table"
+    }
+      else if (!router.hasRoute(path)) {
       tablist.activeid = "not-found-table";
     } else {
       tablist.activeid = path + "-table";
     }
+    
   } else {
     tablist.activeid = "-table";
   }
@@ -127,7 +133,7 @@ const handleLogout = () => {
               <p>竞赛</p>
             </li>
           </RouterLink>
-
+          <!--
           <RouterLink to="/community"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
             :class="{ 'bg-neutral-200 dark:bg-neutral-700 text-blue-800 dark:text-blue-200': $route.path.startsWith('/community') }">
@@ -136,6 +142,7 @@ const handleLogout = () => {
               <p>社区</p>
             </li>
           </RouterLink>
+          -->
 
           <RouterLink v-show="isLoggedIn" to="/workspace"
             class="flex rounded-sm hover:bg-neutral-200 active:bg-neutral-200 dark:hover:bg-neutral-700 dark:active:bg-neutral-700 active:text-blue-900 dark:active:text-blue-300 transition"
@@ -277,6 +284,7 @@ const handleLogout = () => {
                     <p>竞赛</p>
                   </li>
                 </fluent-tab>
+                <!--
                 <fluent-tab id="community-table"
                   class="h-8 py-5 aria-selected:bg-neutral-100 dark:aria-selected:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
                   <li class="font-normal flex justify-center items-center gap-2 px-2.5 rounded-sm select-none">
@@ -284,6 +292,7 @@ const handleLogout = () => {
                     <p>社区</p>
                   </li>
                 </fluent-tab>
+              -->
                 <fluent-tab v-show="isLoggedIn" id="workspace-table"
                   class="h-8 py-5 aria-selected:bg-neutral-100 dark:aria-selected:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
                   <li class="font-normal flex justify-center items-center gap-2 px-2.5 rounded-sm select-none">
