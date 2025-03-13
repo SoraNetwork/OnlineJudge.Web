@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="js">
 import TokenItem from "@/components/TokenItem.vue";
 import RecentSubmissions from "@/components/RecentSubmissions.vue";
 import { Icon } from "@iconify/vue";
@@ -15,7 +15,7 @@ const props = defineProps({
 });
 
 document.title = "Sora Online Judge • 个人资料";
-
+/*
 // 定义用户资料类型
 interface Badge {
   name: string;
@@ -51,7 +51,7 @@ interface Submission {
   submitTime: string;
   username?: string;
   questionId?: string;
-}
+} */
 
 // 用户信息状态
 const userInfo = ref({
@@ -67,18 +67,18 @@ const userInfo = ref({
     submissions: 0,
     acceptanceRate: "0%",
   },
-  badges: [] as Badge[],
-  recentActivity: [] as Activity[],
-  recentSubmissions: [] as Submission[],
-  problemTags: [] as ProblemTag[],
-  ratingHistory: [] as RatingRecord[]
+  badges: [] ,
+  recentActivity: [] ,
+  recentSubmissions: [] ,
+  problemTags: [] ,
+  ratingHistory: []
 });
 
 const isLoading = ref(true);
 const error = ref("");
 
 // 获取用户资料
-const fetchUserProfile = async (userId: string) => {
+const fetchUserProfile = async (userId) => {
   try {
     isLoading.value = true;
     error.value = "";

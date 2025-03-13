@@ -86,6 +86,11 @@ onMounted(async () => {
     const response = await getQuestionById(problemId);
     if (response.success && response.data) {
       const questionData = response.data;
+      // 计算通过率
+      const acceptanceRate = questionData.submitCount > 0 
+        ? ((questionData.acceptCount / questionData.submitCount) * 100).toFixed(1) + '%'
+        : '0%';
+        
       problem.value = {
         id: questionData.id,
         title: questionData.title,
@@ -93,14 +98,17 @@ onMounted(async () => {
         timeLimit: questionData.timeLimit || 1000,
         memoryLimit: questionData.memoryLimit || 256,
         tags: questionData.tags || [],
-        acceptance: questionData.acceptance || '0%',
+        acceptance: acceptanceRate,
         author: {
-          username: questionData.createdBy || 'anonymous',
-          nickname: questionData.authorNickname || '匿名用户',
-          avatar: questionData.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${questionData.createdBy || 'anonymous'}`
+          username: questionData.creatorName || 'anonymous',
+          nickname: questionData.creatorName || '匿名用户',
+avatar: '' // 如果API没有返回头像，使用默认值
         },
-        createTime: questionData.createdAt || '',
-        content: questionData.description || ''
+        createTime: formatDateTime(questionData.createTime) || '',
+        content: questionData.description || '',
+        submitCount: questionData.submitCount,
+        acceptCount: questionData.acceptCount,
+        visibility: questionData.visibility || []
       };
       editedContent.value = questionData.description;
     } else {
@@ -113,6 +121,29 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
+
+// 添加日期格式化函数
+const formatDateTime = (isoDateString) => {
+  if (!isoDateString) return '';
+  try {
+    const date = new Date(isoDateString);
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (e) {
+    console.error('日期格式化错误:', e);
+    return isoDateString;
+  }
+};
+
+// 添加获取首字母函数
+const getInitials = (name) => {
+  return name ? name.charAt(0).toUpperCase() : '?';
+};
 
 const handleEdit = () => {
   isEditing.value = true;
@@ -175,11 +206,18 @@ const handleBack = () => {
               <span>通过率: {{ problem.acceptance }}</span>
               <span class="flex items-center gap-2">
                 <span>作者:</span>
-                <img 
-                  :src="problem.author.avatar" 
-                  :alt="problem.author.nickname"
-                  class="w-5 h-5 rounded-full"
-                />
+                <template v-if="problem.author.avatar">
+                  <img 
+                    :src="problem.author.avatar" 
+                    :alt="problem.author.nickname"
+                    class="w-5 h-5 rounded-full"
+                  />
+                </template>
+                <template v-else>
+                  <div class="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
+                    {{ getInitials(problem.author.nickname) }}
+                  </div>
+                </template>
                 <span>{{ problem.author.nickname }}</span>
               </span>
               <span class="text-neutral-500">

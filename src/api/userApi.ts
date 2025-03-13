@@ -84,6 +84,26 @@ export interface UserProfileDetail {
 }
 
 /**
+ * 个人资料更新请求
+ */
+export interface UserProfileUpdateRequest {
+  nickname?: string;
+  email?: string;
+  avatar?: string;
+  realName?: string;
+  fullName?: string;
+  bio?: string;
+}
+
+/**
+ * 密码更新请求
+ */
+export interface PasswordUpdateRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+/**
  * API响应接口
  */
 export interface ApiResponse<T = any> {
@@ -168,17 +188,54 @@ export const getUserProfile = async (userId: string): Promise<ApiResponse<UserPr
   }
 };
 
-export const login = async (username: string, loginToken: string) => {
-  const response = await apiClient.post('/user/login', { username, loginToken });
-  return response.data;
+/**
+ * 更新用户资料
+ * @param profileData 用户资料数据
+ * @returns 更新结果
+ */
+export const updateUserProfile = async (profileData: UserProfileUpdateRequest): Promise<ApiResponse<string>> => {
+  try {
+    const response = await fetch(getApiUrl('/user/profile'), {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        nickname: profileData.nickname,
+        avatarUrl: profileData.avatar,
+        email: profileData.email,
+        realName: profileData.realName,
+        fullName: profileData.fullName
+      })
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error('更新用户资料失败:', error);
+    return {
+      success: false,
+      message: '网络错误，请稍后再试'
+    };
+  }
 };
 
-export const register = async (registerRequest: any) => {
-  const response = await apiClient.post('/user/register', registerRequest);
-  return response.data;
-};
+/**
+ * 更新用户密码
+ * @param passwordData 密码数据
+ * @returns 更新结果
+ */
+export const updateUserPassword = async (passwordData: PasswordUpdateRequest): Promise<ApiResponse<string>> => {
+  try {
+    const response = await fetch(getApiUrl('/user/password'), {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(passwordData)
+    });
 
-export const updateUserProfile = async (username: string, updatedProfile: any) => {
-  const response = await apiClient.put(`/user/profile/${username}`, updatedProfile);
-  return response.data;
+    return await response.json();
+  } catch (error) {
+    console.error('更新密码失败:', error);
+    return {
+      success: false,
+      message: '网络错误，请稍后再试'
+    };
+  }
 };

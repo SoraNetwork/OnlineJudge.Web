@@ -36,7 +36,6 @@ const handleMouseLeave = () => {
             @click="navigate('/')"
           />
           <p
-
             class="text-3xl select-none font-semibold text-neutral-700 dark:text-white hover:text-neutral-500 dark:hover:text-neutral-300 transition"
             @click="navigate('/')"
           >
@@ -64,8 +63,7 @@ const handleMouseLeave = () => {
         <p
           class="text-md select-none font-semibold text-neutral-500 dark:text-neutral-400"
         >
-          Copyright © 星可 XingSora 2025
-          
+          Copyright © 2024 Sora Online Judge
         </p>
         <a class="text-md select-none font-semibold text-neutral-500 dark:text-neutral-400" href="http://beian.miit.gov.cn/">
           浙ICP备2024113182号-1
@@ -76,35 +74,33 @@ const handleMouseLeave = () => {
         <p
           class="text-md select-none text-neutral-600 hover:text-neutral-400 dark:text-neutral-300 dark:hover:text-neutral-50 transition"
         >
-          页面
+          导航
         </p>
         <div class="flex flex-col gap-2 items-start" style="margin-left: -12px">
           <HyperlinkButton Content="主页" :OnClick="() => navigate('/')" />
-          <HyperlinkButton
-            Content="项目"
-            :OnClick="() => navigate('/projects')"
-          />
-          <HyperlinkButton Content="消息" :OnClick="() => navigate('/news')" />
+          <HyperlinkButton Content="题目" :OnClick="() => navigate('/questions')" />
+          <HyperlinkButton Content="竞赛" :OnClick="() => navigate('/contests')" />
+          <HyperlinkButton Content="工作台" :OnClick="() => navigate('/workspace')" />
         </div>
       </div>
       <div class="flex md:flex-auto flex-col gap-2 items-start">
         <p
           class="text-md select-none text-neutral-600 hover:text-neutral-400 dark:text-neutral-300 dark:hover:text-neutral-50 transition"
         >
-          链接
+          资源
         </p>
         <div class="flex flex-col gap-2 items-start" style="margin-left: -12px">
           <HyperlinkButton
-            Content="Fluent Launcher"
-            href="https://github.com/Xcube-Studio/Natsurainko.FluentLauncher"
+            Content="算法学习"
+            href="https://oi-wiki.org/"
           />
           <HyperlinkButton
-            Content="Fluent Launcher 本地化"
-            href="https://github.com/Xcube-Studio/FluentLauncher.Localization"
+            Content="评测状态"
+            :OnClick="() => navigate('/questions/status/all')"
           />
           <HyperlinkButton
-            Content="Fluent Core"
-            href="https://github.com/Xcube-Studio/Natsurainko.FluentCore"
+            Content="帮助文档"
+            href="#"
           />
         </div>
       </div>
@@ -112,9 +108,17 @@ const handleMouseLeave = () => {
         <p
           class="text-md select-none text-neutral-600 hover:text-neutral-400 dark:text-neutral-300 dark:hover:text-neutral-50 transition"
         >
-          链接
+          关于
         </p>
         <div class="flex flex-col gap-2 items-start" style="margin-left: -12px">
+          <HyperlinkButton
+            Content="关于我们"
+            href="#"
+          />
+          <HyperlinkButton
+            Content="使用条款"
+            href="#"
+          />
           <HyperlinkButton
             Content="隐私政策"
             :OnClick="() => navigate('/privacy')"

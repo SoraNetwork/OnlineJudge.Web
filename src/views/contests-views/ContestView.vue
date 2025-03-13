@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import TokenItem from '@/components/TokenItem.vue'
 import { getContestById, joinContest, getContestRankings, type ContestDetail, type ContestRanking } from '@/api/contestApi'
+import { getQuestionById } from '@/api/questionApi'  // 导入getQuestionById函数
 
 const route = useRoute()
 const router = useRouter()
@@ -37,14 +38,41 @@ const loadContestDetail = async () => {
       
       // 处理题目列表
       if (response.data.problems) {
-        problems.value = response.data.problems.map(p => ({
+        // 先创建基本题目列表
+        const problemsList = response.data.problems.map(p => ({
           id: p.displayId,
           problemid: p.problemId,
-          title: p.title,
-          difficulty: p.difficulty,
+          title: p.title || '加载中...', // 默认标题
+          difficulty: p.difficulty || '未知', // 默认难度
           acceptance: '未知', // API未返回此字段
           solved: false // 需要从用户提交记录确定
         }))
+        
+        problems.value = problemsList
+        
+        // 使用Promise.all同时请求所有题目详情
+        const problemDetailsPromises = problemsList.map(async (problem) => {
+          try {
+            const questionResponse = await getQuestionById(problem.problemid)
+            if (questionResponse && questionResponse.success && questionResponse.data) {
+              problem.title = questionResponse.data.title || problem.title
+              problem.difficulty = questionResponse.data.difficulty || problem.difficulty
+              
+              // 如果API返回了接受率信息，更新它
+              if (questionResponse.data.acceptCount !== undefined && questionResponse.data.submitCount !== undefined && questionResponse.data.submitCount > 0) {
+                const acceptanceRate = (questionResponse.data.acceptCount / questionResponse.data.submitCount * 100).toFixed(1)
+                problem.acceptance = `${acceptanceRate}%`
+              }
+            }
+            return problem
+          } catch (err) {
+            console.error(`获取题目 ${problem.problemid} 详情失败:`, err)
+            return problem
+          }
+        })
+        
+        // 等待所有题目详情加载完成
+        await Promise.all(problemDetailsPromises)
       }
 
       problems.value.sort((a, b) => a.id.localeCompare(b.id))
@@ -425,7 +453,7 @@ const retryLoadRankings = () => {
                   <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                     难度
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                  <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-z400 uppercase tracking-wider">
                     通过率
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
@@ -515,9 +543,7 @@ const retryLoadRankings = () => {
                   <th class="px-6 py-3 text-center text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                     总分
                   </th>
-                  <th class="px-6 py-3 text-center text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                    罚时
-                  </th>
+                  <!-- 罚时列已移除 -->
                 </tr>
               </thead>
               <tbody class="bg-white dark:bg-neutral-900 divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -558,9 +584,7 @@ const retryLoadRankings = () => {
                   <td class="px-6 py-4 text-center whitespace-nowrap font-medium">
                     {{ user.totalScore }}
                   </td>
-                  <td class="px-6 py-4 text-center whitespace-nowrap text-neutral-600 dark:text-neutral-400">
-                    {{ user.penalty }}分钟
-                  </td>
+                  <!-- 罚时单元格已移除 -->
                 </tr>
               </tbody>
             </table>

@@ -3,10 +3,10 @@ import AnnounceBar from "@/components/AnnounceBar.vue";
 import TokenItem from "@/components/TokenItem.vue";
 import RecommendedProblems from "@/components/RecommendedProblems.vue";
 import { Icon } from "@iconify/vue";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { isLoggedIn, userInfo, clearLoginState } from '@/stores/userStore.ts';
-import { login, register, getUserProfile, updateUserProfile } from '@/api/userApi.ts';
+import { isLoggedIn, userInfo, clearLoginState, setUserDetail } from '@/stores/userStore.ts';
+import { getUserProfile, updateUserProfile } from '@/api/userApi.ts';
 import RecentSubmissions from "@/components/RecentSubmissions.vue";
 import { getContests } from '@/api/contestApi';
 import { getQuestions } from '@/api/questionApi';
@@ -26,11 +26,34 @@ const router = useRouter();
 const loading = ref({
   contests: false,
   problems: false,
+  userDetail: false
 });
 const error = ref({
   contests: '',
   problems: '',
+  userDetail: ''
 });
+
+// 添加获取用户详细信息的方法
+const loadUserDetail = async () => {
+  if (!isLoggedIn.value || !userInfo.value?.username) return;
+  
+  loading.value.userDetail = true;
+  try {
+    const response: { success: boolean; data?: any; message?: string } = await getUserProfile(userInfo.value.username);
+    if (response.success && response.data) {
+      // 将详细信息更新到userStore中
+      setUserDetail(response.data);
+    } else {
+      error.value.userDetail = response.message || "获取用户详情失败";
+    }
+  } catch (err) {
+    error.value.userDetail = "获取用户详情时出错";
+    console.error('获取用户详情失败:', err);
+  } finally {
+    loading.value.userDetail = false;
+  }
+};
 
 // 加载最近比赛数据
 const loadRecentContests = async () => {
@@ -80,6 +103,16 @@ const loadRecommendedProblems = async () => {
 onMounted(() => {
   loadRecentContests();
   loadRecommendedProblems();
+  if (isLoggedIn.value) {
+    loadUserDetail();
+  }
+});
+
+// 监听登录状态变化，当用户登录时加载详细信息
+watch(isLoggedIn, (newValue) => {
+  if (newValue) {
+    loadUserDetail();
+  }
 });
 
 const handleLogin = () => {
@@ -143,11 +176,11 @@ const getInitials = (name: string) => {
                 <div class="flex flex-col gap-2">
                   <h2 class="text-2xl font-bold">{{ userInfo?.nickname || userInfo?.username }}</h2>
                   <div class="flex gap-4 text-neutral-600 dark:text-neutral-400">
-                    <span>Rating: {{ userInfo?.rating }}</span>
-                    <span>已解决: {{ userInfo?.solved }}</span>
+                    <span>Rating: {{ userInfo?.rating || 0 }}</span>
+                    <span>已解决: {{ userInfo?.solved || 0 }}</span>
                   </div>
                   <div class="text-neutral-600 dark:text-neutral-400">
-                    <span>排名: #{{ userInfo?.ranking }}</span>
+                    <span>排名: #{{ userInfo?.ranking || '-' }}</span>
                   </div>
                 </div>
               </div>
@@ -159,9 +192,18 @@ const getInitials = (name: string) => {
             </div>
 
             <!-- 最近提交 -->
-            <div class="mt-2">
-              <RecentSubmissions :maxCount="2" :showQuestionLink="true" :showViewAllButton="true" v-if="userInfo"
-                :submissions="userInfo!.recentSubmissions || []" />
+            <div v-if="loading.userDetail" class="flex justify-center py-4">
+              <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+            <div v-else-if="error.userDetail" class="text-red-500 text-center text-sm py-2">
+              {{ error.userDetail }}
+            </div>
+            <div v-else-if="userInfo?.recentSubmissions && userInfo.recentSubmissions.length > 0" class="mt-2">
+              <RecentSubmissions :maxCount="3" :showQuestionLink="true" :showViewAllButton="true" 
+                title="最近提交" :submissions="userInfo.recentSubmissions" />
+            </div>
+            <div v-else class="mt-2 text-center py-3 text-neutral-500 text-sm">
+              暂无提交记录
             </div>
           </div>
 
@@ -185,6 +227,7 @@ const getInitials = (name: string) => {
         </div>
 
         <!-- 排行榜 -->
+      <!--
         <div
           class="rounded-lg border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
           <div class="flex justify-between items-center mb-4">
@@ -195,7 +238,7 @@ const getInitials = (name: string) => {
               class="flex items-center justify-between py-3 border-b-1 border-neutral-200 dark:border-neutral-700 last:border-0">
               <div class="flex items-center gap-3">
                 <span class="font-bold w-6">{{ user.rank }}</span>
-                <!-- 添加头像/徽章 -->
+                添加头像/徽章
                 <div class="w-8 h-8 flex items-center">
                   <div v-if="user.avatar" class="w-full h-full">
                     <fluent-avatar :image="user.avatar" :title="user.username">
@@ -217,8 +260,9 @@ const getInitials = (name: string) => {
             </div>
           </div>
         </div>
-      </div>
-
+      
+      -->
+    </div>
       <!-- 右侧面板：题目列表和比赛 -->
       <div class="md:w-2/3 flex flex-col gap-6">
         <!-- 题目列表 -->

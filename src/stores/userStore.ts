@@ -53,6 +53,37 @@ export function setLoginState(user: User) {
   localStorage.setItem('userInfo', JSON.stringify(user));
 }
 
+// 设置用户详细信息，包括最近提交
+export function setUserDetail(detail: any) {
+  if (!userInfo.value) return;
+  
+  // 保留原有基本信息
+  const updatedUser = {
+    ...userInfo.value,
+    // 更新用户统计信息
+    solved: detail.stats?.solved || userInfo.value.solved,
+    rating: detail.rating || userInfo.value.rating,
+    ranking: detail.ranking || userInfo.value.ranking,
+  };
+  
+  // 添加最近提交记录
+  if (detail.recentSubmissions && detail.recentSubmissions.length > 0) {
+    updatedUser.recentSubmissions = detail.recentSubmissions.map((sub: any) => ({
+      id: sub.id,
+      questionId: sub.questionId,
+      status: sub.status,
+      time: sub.time,
+      memory: sub.memory,
+      language: sub.language,
+      submitTime: sub.submitTime
+    }));
+  }
+  
+  // 更新状态
+  userInfo.value = updatedUser;
+  localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+}
+
 // 登出
 export function clearLoginState() {
   isLoggedIn.value = false

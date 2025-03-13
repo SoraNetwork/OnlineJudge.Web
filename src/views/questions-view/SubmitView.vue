@@ -30,14 +30,14 @@ const languages = [
     label: 'C++', 
     icon: 'vscode-icons:file-type-cpp3',
     description: 'C++17 (GCC 9.4.0)'
-  },
+  }, 
   { 
     value: 'python', 
     label: 'Python', 
     icon: 'vscode-icons:file-type-python',
     description: 'Python 3.9.7'
   },
-  { 
+/*  { 
     value: 'java', 
     label: 'Java', 
     icon: 'vscode-icons:file-type-java',
@@ -48,7 +48,7 @@ const languages = [
     label: 'JavaScript', 
     icon: 'vscode-icons:file-type-js-official',
     description: 'Node.js 16.13.0'
-  }
+  } */
 ];
 
 // 计算是否来自比赛

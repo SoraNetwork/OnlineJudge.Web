@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { userInfo } from '@/stores/userStore';
-import { updateUserProfile } from '@/api/userApi';
+import { userInfo, setUserDetail } from '@/stores/userStore';
+import { updateUserProfile, updateUserPassword } from '@/api/userApi';
 import { Icon } from "@iconify/vue";
+import { message } from "@/services/MessageService"; // 导入消息服务
 
 const router = useRouter();
 
@@ -13,7 +14,6 @@ document.title = "Sora Online Judge • 个人资料设置";
 const profileForm = ref({
   nickname: userInfo.value?.nickname || '',
   email: userInfo.value?.email || '',
-  //bio: userInfo.value?.bio || '',
   avatar: userInfo.value?.avatar || ''
 });
 
@@ -23,6 +23,10 @@ const passwordForm = ref({
   confirmPassword: ''
 });
 
+// 提交状态
+const isSubmitting = ref(false);
+const isChangingPassword = ref(false);
+
 // 错误信息
 const error = ref('');
 const success = ref('');
@@ -30,45 +34,87 @@ const success = ref('');
 // 表单提交处理
 const handleProfileSubmit = async () => {
   try {
+    if (isSubmitting.value) return;
+    
+    isSubmitting.value = true;
     success.value = '';
     error.value = '';
     
-    //await updateUserProfile(profileForm.value);
-    success.value = '个人资料更新成功！';
+    const response = await updateUserProfile({
+      nickname: profileForm.value.nickname,
+      email: profileForm.value.email,
+      avatar: profileForm.value.avatar
+    });
     
-    // 更新本地存储的用户信息
-    if (userInfo.value) {
-      userInfo.value = {
-        ...userInfo.value,
-        ...profileForm.value
-      };
+    if (response.success) {
+      message.success('个人资料更新成功！');
+      success.value = '个人资料更新成功！';
+      
+      // 更新本地存储的用户信息
+      if (userInfo.value) {
+        userInfo.value = {
+          ...userInfo.value,
+          nickname: profileForm.value.nickname,
+          email: profileForm.value.email,
+          avatar: profileForm.value.avatar
+        };
+      }
+    } else {
+      error.value = response.message || '更新失败，请稍后重试';
+      message.error(response.message || '更新失败，请稍后重试');
     }
   } catch (err: any) {
     error.value = err.message || '更新失败，请稍后重试';
+    message.error(err.message || '更新失败，请稍后重试');
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
 const handlePasswordSubmit = async () => {
   try {
+    if (isChangingPassword.value) return;
+    
+    isChangingPassword.value = true;
     success.value = '';
     error.value = '';
     
     if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
       error.value = '两次输入的密码不一致';
+      message.error('两次输入的密码不一致');
+      isChangingPassword.value = false;
       return;
     }
     
-    // 这里需要实现密码更新的 API 调用
-    // await updatePassword(passwordForm.value);
+    if (passwordForm.value.newPassword.length < 6) {
+      error.value = '新密码长度必须大于或等于6个字符';
+      message.error('新密码长度必须大于或等于6个字符');
+      isChangingPassword.value = false;
+      return;
+    }
     
-    success.value = '密码修改成功！';
-    passwordForm.value = {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    };
+    const response = await updateUserPassword({
+      currentPassword: passwordForm.value.currentPassword,
+      newPassword: passwordForm.value.newPassword
+    });
+    
+    if (response.success) {
+      success.value = '密码修改成功！';
+      message.success('密码修改成功！');
+      passwordForm.value = {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      };
+    } else {
+      error.value = response.message || '密码修改失败，请稍后重试';
+      message.error(response.message || '密码修改失败，请稍后重试');
+    }
   } catch (err: any) {
     error.value = err.message || '密码修改失败，请稍后重试';
+    message.error(err.message || '密码修改失败，请稍后重试');
+  } finally {
+    isChangingPassword.value = false;
   }
 };
 
@@ -179,9 +225,10 @@ const inputs = ref({
                 />
               </div>
 
-              <fluent-button appearance="accent" type="submit" class="self-end">
-                <Icon icon="fluent:save-20-filled" class="w-5 h-5 mr-2" />
-                保存修改
+              <fluent-button appearance="accent" type="submit" class="self-end" :disabled="isSubmitting">
+                <Icon v-if="isSubmitting" icon="fluent:spinner-ios-20-regular" class="w-5 h-5 mr-2 animate-spin" />
+                <Icon v-else icon="fluent:save-20-filled" class="w-5 h-5 mr-2" />
+                {{ isSubmitting ? '保存中...' : '保存修改' }}
               </fluent-button>
             </form>
           </div>
@@ -234,9 +281,10 @@ const inputs = ref({
                 />
               </div>
 
-              <fluent-button appearance="accent" type="submit" class="self-end">
-                <Icon icon="fluent:key-20-filled" class="w-5 h-5 mr-2" />
-                修改密码
+              <fluent-button appearance="accent" type="submit" class="self-end" :disabled="isChangingPassword">
+                <Icon v-if="isChangingPassword" icon="fluent:spinner-ios-20-regular" class="w-5 h-5 mr-2 animate-spin" />
+                <Icon v-else icon="fluent:key-20-filled" class="w-5 h-5 mr-2" />
+                {{ isChangingPassword ? '修改中...' : '修改密码' }}
               </fluent-button>
             </form>
           </div>

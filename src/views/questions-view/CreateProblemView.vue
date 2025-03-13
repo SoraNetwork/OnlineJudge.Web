@@ -81,11 +81,6 @@ const currentUser = ref({
 const visibilities = computed(() => [
   { value: 'public', label: '公开', description: '所有用户可见' },
   { value: 'contest', label: '比赛专用', description: '仅在比赛中可见' },
-  ...currentUser.value.teams.map(team => ({ 
-    value: `team.${team.id}`, 
-    label: `团队: ${team.name}`, 
-    description: `仅对"${team.name}"团队成员可见`
-  })),
   { 
     value: `private.${currentUser.value.username}`, 
     label: `私有`, 
