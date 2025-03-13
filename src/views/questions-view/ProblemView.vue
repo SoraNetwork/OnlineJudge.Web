@@ -15,7 +15,8 @@ import frontmatter from '@bytemd/plugin-frontmatter'
 import math from '@bytemd/plugin-math'
 import zhHans from 'bytemd/lib/locales/zh_Hans.json'
 import RecentSubmissions from '@/components/RecentSubmissions.vue'
-import { getQuestionById } from '@/api/questionApi'
+import { getQuestionById, getSubmissions } from '@/api/questionApi'
+import { isLoggedIn } from '@/stores/userStore' // 导入登录状态
 
 const route = useRoute();
 const problemId = route.params.id;
@@ -28,7 +29,7 @@ const problem = ref({
   timeLimit: 0,
   memoryLimit: 0,
   tags: [],
-  acceptance: '',
+  // acceptance: '', // 注释掉，因为后端没有正确维护这个值
   author: {
     username: '',
     nickname: '',
@@ -46,27 +47,11 @@ const errorMessage = ref('');
 // 修改提交记录数据结构
 const submissions = ref({
   personalSubmissions: [], // 个人提交记录
-  otherSubmissions: [     // 他人提交记录
-    {
-      id: '12345',
-      status: 'Accepted',
-      time: '100ms',
-      memory: '10.5MB',
-      language: 'C++',
-      submitTime: '2024-01-20 12:30:45',
-      username: 'user1'
-    },
-    {
-      id: '12344',
-      status: 'Wrong Answer',
-      time: '95ms',
-      memory: '10.2MB',
-      language: 'Python',
-      submitTime: '2024-01-20 12:25:30',
-      username: 'user2'
-    }
-  ]
+  otherSubmissions: []     // 他人提交记录
 })
+
+const loadingSubmissions = ref(false);
+const submissionError = ref('');
 
 // 计算要显示的提交记录
 const displaySubmissions = computed(() => {
@@ -83,13 +68,18 @@ onMounted(async () => {
     isLoading.value = true;
     errorMessage.value = '';
     
-    const response = await getQuestionById(problemId);
-    if (response.success && response.data) {
-      const questionData = response.data;
-      // 计算通过率
-      const acceptanceRate = questionData.submitCount > 0 
-        ? ((questionData.acceptCount / questionData.submitCount) * 100).toFixed(1) + '%'
-        : '0%';
+    // 同时加载问题详情和提交记录
+    const [questionResponse] = await Promise.all([
+      getQuestionById(problemId),
+      loadSubmissionRecords() // 添加加载提交记录的方法调用
+    ]);
+    
+    if (questionResponse.success && questionResponse.data) {
+      const questionData = questionResponse.data;
+      // 计算通过率 - 注释掉，因为后端没有正确维护这个值
+      // const acceptanceRate = questionData.submitCount > 0 
+      //   ? ((questionData.acceptCount / questionData.submitCount) * 100).toFixed(1) + '%'
+      //   : '0%';
         
       problem.value = {
         id: questionData.id,
@@ -98,7 +88,7 @@ onMounted(async () => {
         timeLimit: questionData.timeLimit || 1000,
         memoryLimit: questionData.memoryLimit || 256,
         tags: questionData.tags || [],
-        acceptance: acceptanceRate,
+        // acceptance: acceptanceRate, // 注释掉，因为后端没有正确维护这个值
         author: {
           username: questionData.creatorName || 'anonymous',
           nickname: questionData.creatorName || '匿名用户',
@@ -112,7 +102,7 @@ avatar: '' // 如果API没有返回头像，使用默认值
       };
       editedContent.value = questionData.description;
     } else {
-      errorMessage.value = response.message || '获取问题数据失败';
+      errorMessage.value = questionResponse.message || '获取问题数据失败';
     }
   } catch (error) {
     console.error('获取问题详情出错:', error);
@@ -121,6 +111,64 @@ avatar: '' // 如果API没有返回头像，使用默认值
     isLoading.value = false;
   }
 });
+
+// 添加获取提交记录的方法
+const loadSubmissionRecords = async () => {
+  loadingSubmissions.value = true;
+  submissionError.value = '';
+  
+  try {
+    // 获取当前用户对此题目的提交
+    if (isLoggedIn.value) {
+      const personalResponse = await getSubmissions({
+        questionId: problemId,
+        pageIndex: 1,
+        pageSize: 5,
+        getAllUsers: false
+      });
+      
+      if (personalResponse.success && personalResponse.data) {
+        submissions.value.personalSubmissions = personalResponse.data.map(item => ({
+          id: item.id,
+          questionId: item.questionId,
+          status: item.status,
+          language: item.language,
+          submitTime: item.submitTime,
+          time: `${item.timeUsed}ms`,
+          memory: `${(item.memoryUsed / 1024 / 1024).toFixed(2)}MB`,
+        }));
+      }
+    }
+    
+    // 获取其他用户对此题目的提交
+    const otherResponse = await getSubmissions({
+      questionId: problemId,
+      pageIndex: 1,
+      pageSize: 5,
+      getAllUsers: true
+    });
+    
+    if (otherResponse.success && otherResponse.data) {
+      submissions.value.otherSubmissions = otherResponse.data
+        .filter(item => !submissions.value.personalSubmissions.some(ps => ps.id === item.id)) // 排除个人提交
+        .map(item => ({
+          id: item.id,
+          questionId: item.questionId,
+          status: item.status,
+          language: item.language,
+          submitTime: item.submitTime,
+          time: `${item.timeUsed}ms`,
+          memory: `${(item.memoryUsed / 1024 / 1024).toFixed(2)}MB`,
+          username: item.userName
+        }));
+    }
+  } catch (error) {
+    console.error('获取提交记录失败:', error);
+    submissionError.value = '获取提交记录失败，请稍后重试';
+  } finally {
+    loadingSubmissions.value = false;
+  }
+};
 
 // 添加日期格式化函数
 const formatDateTime = (isoDateString) => {
@@ -203,7 +251,8 @@ const handleBack = () => {
             <div class="mt-2 flex flex-wrap items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
               <span>时间限制: {{ problem.timeLimit }}ms</span>
               <span>内存限制: {{ problem.memoryLimit }}MB</span>
-              <span>通过率: {{ problem.acceptance }}</span>
+              <!-- 注释掉通过率显示，因为后端没有正确维护这个值 -->
+              <!-- <span>通过率: {{ problem.acceptance }}</span> -->
               <span class="flex items-center gap-2">
                 <span>作者:</span>
                 <template v-if="problem.author.avatar">
@@ -272,11 +321,21 @@ const handleBack = () => {
 
           <!-- 右侧提交记录 - 仅在非编辑模式显示 -->
           <div v-if="!isEditing" class="lg:col-span-1">
+            <div v-if="loadingSubmissions" class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-4">
+              <div class="flex justify-center py-6">
+                <fluent-progress-ring></fluent-progress-ring>
+              </div>
+            </div>
+            <div v-else-if="submissionError" class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-4">
+              <div class="text-red-500 text-center py-4">{{ submissionError }}</div>
+            </div>
             <RecentSubmissions 
+              v-else
               :show-view-all-button="true"
               :submissions="displaySubmissions"
               :show-username="submissions.personalSubmissions.length === 0"
               :title="submissions.personalSubmissions.length > 0 ? '我的提交' : '最近提交'"
+              :showQuestionLink="false"
             />
           </div>
         </div>

@@ -38,10 +38,28 @@ const props = withDefaults(defineProps<Props>(), {
 
 // 语言图标映射
 const languageIcons: Record<string, string> = {
-  'C++': 'vscode-icons:file-type-cpp3',
-  'Python': 'vscode-icons:file-type-python',
-  'Java': 'vscode-icons:file-type-java',
+  'cpp': 'vscode-icons:file-type-cpp3',
+  'python': 'vscode-icons:file-type-python',
+  'java': 'vscode-icons:file-type-java',
   'JavaScript': 'vscode-icons:file-type-js-official'
+}
+
+// 添加时间格式化函数
+const formatDateTime = (isoString: string): string => {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (e) {
+    console.error('日期格式化错误:', e);
+    return isoString;
+  }
 }
 
 const navigate = (path: string) => {
@@ -79,7 +97,7 @@ const navigate = (path: string) => {
         </div>
         <div class="text-sm text-neutral-600 dark:text-neutral-400">
           <div class="flex items-center gap-2">
-            <span>{{ submission.submitTime }}</span>
+            <span>{{ formatDateTime(submission.submitTime) }}</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="flex items-center gap-1">

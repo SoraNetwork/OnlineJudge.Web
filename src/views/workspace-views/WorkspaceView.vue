@@ -3,7 +3,9 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
 import { userInfo, hasPermission } from '@/stores/userStore';
-import RecentActivities from '@/components/RecentActivities.vue';
+// 将 RecentActivities 替换为 RecentSubmissions
+import RecentSubmissions from '@/components/RecentSubmissions.vue';
+import { getSubmissions } from '@/api/questionApi'; // 添加导入
 
 document.title = "Sora Online Judge • 工作台";
 
@@ -13,56 +15,62 @@ const router = useRouter();
 const isAdminUser = ref(false);
 const isTeamManagerUser = ref(false);
 
-// 模拟数据，实际使用时应该从API获取
-const recentActivities = ref([
-  { 
-    id: '1', 
-    type: '做题', 
-    title: 'A + B Problem', 
-    target: 'P1001', 
-    targetId: 'P1001',
-    result: '通过', 
-    time: '2024-01-15 14:30' 
-  },
-  { 
-    id: '2', 
-    type: '比赛', 
-    title: '周末算法竞赛', 
-    target: '周末算法竞赛', 
-    targetId: 'C1002',
-    result: '参与', 
-    time: '2024-01-14 10:00' 
-  },
-  { 
-    id: '3', 
-    type: '提交', 
-    title: '铺地毯', 
-    target: 'P1003', 
-    targetId: 'P1003',
-    result: '未通过', 
-    time: '2024-01-13 16:45' 
-  },
-  { 
-    id: '4', 
-    type: '讨论', 
-    title: '如何优化动态规划解法', 
-    target: 'DP优化技巧', 
-    targetId: 'D1001',
-    result: '发布', 
-    time: '2024-01-12 09:15' 
+// 添加提交记录状态
+interface Submission {
+  id: string;
+  questionId: string;
+  status: string;
+  language: string;
+  submitTime: string;
+  time: string;
+  memory: string;
+}
+const userSubmissions = ref<Submission[]>([]);
+const loadingSubmissions = ref(false);
+const submissionError = ref('');
+
+// 添加获取用户提交记录的方法
+const loadUserSubmissions = async () => {
+  loadingSubmissions.value = true;
+  submissionError.value = '';
+  
+  try {
+    const response = await getSubmissions({
+      pageIndex: 1,
+      pageSize: 5,
+      getAllUsers: false
+    });
+    
+    if (response.success && response.data) {
+      userSubmissions.value = response.data.map(item => ({
+        id: item.id,
+        questionId: item.questionId,
+        status: item.status,
+        language: item.language,
+        submitTime: item.submitTime,
+        time: `${item.timeUsed}ms`,
+        memory: `${(item.memoryUsed / 1024 / 1024).toFixed(2)}MB`,
+      }));
+    } else {
+      submissionError.value = response.message || "获取提交记录失败";
+    }
+  } catch (error) {
+    console.error("加载提交记录失败:", error);
+    submissionError.value = "加载提交记录失败";
+  } finally {
+    loadingSubmissions.value = false;
   }
-]);
+};
+
+// 在组件挂载时加载数据
+onMounted(() => {
+  loadUserSubmissions();
+});
 
 const userTeams = ref([
   { id: 1, name: '算法竞赛小队', role: '管理员', memberCount: 15 },
   { id: 2, name: 'ACM集训队', role: '成员', memberCount: 32 }
 ]);
-
-// 检查用户权限
-/*onMounted(() => {
-  isAdminUser.value = isAdmin();
-  isTeamManagerUser.value = isTeamAdmin();
-}); */
 
 const navigate = (path: string) => {
   window.scrollTo(0, 0);
@@ -181,50 +189,23 @@ const navigate = (path: string) => {
       </div>
     </section>
 
-    <!-- 最近活动记录 -->
+    <!-- 最近提交记录 - 替换原来的活动记录 -->
     <section class="mb-8">
-      <RecentActivities 
-        :activities="recentActivities" 
-        title="最近活动记录" 
-        :showViewAllButton="true" 
-        :allButtonLink="'/profile'" 
+      <div v-if="loadingSubmissions" class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-4">
+        <div class="flex justify-center py-6">
+          <fluent-progress-ring></fluent-progress-ring>
+        </div>
+      </div>
+      <div v-else-if="submissionError" class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-4">
+        <div class="text-red-500 text-center py-4">{{ submissionError }}</div>
+      </div>
+      <RecentSubmissions 
+        v-else
+        title="最近提交记录" 
+        :submissions="userSubmissions" 
+        :show-view-all-button="true" 
+        :showQuestionLink="true"
       />
     </section>
-
-    <!-- 我的团队 -->
-    <!--
-    <section class="rounded-2xl border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-6">
-      <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-        <Icon icon="fluent:people-team-20-filled" class="w-5 h-5 text-cyan-600" />
-        我的团队
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <fluent-card v-for="team in userTeams" :key="team.id" 
-          class="p-6 cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl"
-          @click="navigate(`/teams/${team.id}`)">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900 flex items-center justify-center">
-              <Icon icon="fluent:people-team-20-filled" class="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
-            </div>
-            <div>
-              <h3 class="text-lg font-medium">{{ team.name }}</h3>
-              <div class="flex gap-2 mt-1">
-                <span class="text-xs bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-200 px-2 py-0.5 rounded-full">{{ team.role }}</span>
-                <span class="text-xs bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 px-2 py-0.5 rounded-full">{{ team.memberCount }} 成员</span>
-              </div>
-            </div>
-          </div>
-          <p class="text-neutral-600 dark:text-neutral-400">查看团队活动、比赛和讨论</p>
-        </fluent-card>
-
-        <fluent-card class="p-6 border-dashed cursor-pointer hover:border-blue-500 transition-colors border-1 border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl"
-          @click="navigate('/teams/create')">
-          <div class="flex flex-col items-center justify-center h-24">
-            <Icon icon="fluent:add-circle-20-regular" class="w-12 h-12 text-neutral-400 dark:text-neutral-600 mb-2" />
-            <p class="text-neutral-600 dark:text-neutral-400">创建新团队</p>
-          </div>
-        </fluent-card>
-      </div>
-    </section>-->
   </div>
 </template>

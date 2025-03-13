@@ -9,7 +9,7 @@ import { isLoggedIn, userInfo, clearLoginState, setUserDetail } from '@/stores/u
 import { getUserProfile, updateUserProfile } from '@/api/userApi.ts';
 import RecentSubmissions from "@/components/RecentSubmissions.vue";
 import { getContests } from '@/api/contestApi';
-import { getQuestions } from '@/api/questionApi';
+import { getQuestions, getSubmissions } from '@/api/questionApi'; // 添加getSubmissions导入
 
 document.title = "Sora Online Judge • 主页";
 
@@ -33,6 +33,21 @@ const error = ref({
   problems: '',
   userDetail: ''
 });
+
+// 添加提交记录状态
+interface Submission {
+  id: string;
+  questionId: string;
+  status: string;
+  language: string;
+  submitTime: string;
+  time: string;
+  memory: string;
+}
+
+const userSubmissions = ref<Submission[]>([]);
+const loadingSubmissions = ref(false);
+const submissionError = ref('');
 
 // 添加获取用户详细信息的方法
 const loadUserDetail = async () => {
@@ -83,10 +98,10 @@ const loadRecommendedProblems = async () => {
         id: item.id,
         title: item.title,
         difficulty: item.difficulty,
-        // 计算通过率，使用acceptCount和submitCount
-        acceptance: item.submitCount && item.submitCount > 0
-          ? `${Math.round((item.acceptCount || 0) / item.submitCount * 100)}%`
-          : "未知"
+        // 注释掉通过率计算，因为后端没有正确维护这个值
+        // acceptance: item.submitCount && item.submitCount > 0
+        //   ? `${Math.round((item.acceptCount || 0) / item.submitCount * 100)}%`
+        //   : "未知"
       }));
     } else {
       error.value.problems = response.message || "获取题目列表失败";
@@ -99,19 +114,58 @@ const loadRecommendedProblems = async () => {
   }
 };
 
+// 添加获取用户提交记录的方法
+const loadUserSubmissions = async () => {
+  if (!isLoggedIn.value) return;
+  
+  loadingSubmissions.value = true;
+  submissionError.value = '';
+  
+  try {
+    const response = await getSubmissions({
+      pageIndex: 1,
+      pageSize: 5,
+      getAllUsers: false
+    });
+    
+    if (response.success && response.data) {
+      userSubmissions.value = response.data.map(item => ({
+        id: item.id,
+        questionId: item.questionId,
+        status: item.status,
+        language: item.language,
+        submitTime: item.submitTime,
+        time: `${item.timeUsed}ms`,
+        memory: `${(item.memoryUsed / 1024 / 1024).toFixed(2)}MB`,
+      }));
+    } else {
+      submissionError.value = response.message || "获取提交记录失败";
+    }
+  } catch (error) {
+    console.error("加载提交记录失败:", error);
+    submissionError.value = "加载提交记录失败";
+  } finally {
+    loadingSubmissions.value = false;
+  }
+};
+
 // 在组件挂载时加载数据
 onMounted(() => {
   loadRecentContests();
   loadRecommendedProblems();
   if (isLoggedIn.value) {
     loadUserDetail();
+    loadUserSubmissions(); // 添加加载用户提交记录
   }
 });
 
-// 监听登录状态变化，当用户登录时加载详细信息
+// 监听登录状态变化，当用户登录时加载详细信息和提交记录
 watch(isLoggedIn, (newValue) => {
   if (newValue) {
     loadUserDetail();
+    loadUserSubmissions(); // 添加加载用户提交记录
+  } else {
+    userSubmissions.value = []; // 用户登出时清空提交记录
   }
 });
 
@@ -143,14 +197,33 @@ const navigate = (path: string) => {
 const getInitials = (name: string) => {
   return name ? name.charAt(0).toUpperCase() : '?';
 };
+
+// 添加时间格式化函数
+const formatDateTime = (isoString: string): string => {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (e) {
+    console.error('日期格式化错误:', e);
+    return isoString;
+  }
+};
 </script>
 
 <template>
   <div class="flex flex-col">
+  <!--
     <AnnounceBar>
       建设中...
     </AnnounceBar>
-
+-->
     <div class="flex flex-col md:flex-row gap-6 p-8">
       <!-- 左侧面板：个人信息和排行榜 -->
       <div class="flex flex-col gap-6 md:w-1/3">
@@ -175,13 +248,13 @@ const getInitials = (name: string) => {
                 </div>
                 <div class="flex flex-col gap-2">
                   <h2 class="text-2xl font-bold">{{ userInfo?.nickname || userInfo?.username }}</h2>
-                  <div class="flex gap-4 text-neutral-600 dark:text-neutral-400">
-                    <span>Rating: {{ userInfo?.rating || 0 }}</span>
-                    <span>已解决: {{ userInfo?.solved || 0 }}</span>
+                  <!--<div class="flex gap-4 text-neutral-600 dark:text-neutral-400">
+                    <span>总提交: {{ userInfo?.statistics.submissions || 0 }}</span>
+                    <span>已解决: {{ userInfo?.statistics.solved || 0 }}</span>
                   </div>
                   <div class="text-neutral-600 dark:text-neutral-400">
                     <span>排名: #{{ userInfo?.ranking || '-' }}</span>
-                  </div>
+                  </div>-->
                 </div>
               </div>
               <div class="flex gap-2 self-end">
@@ -192,15 +265,15 @@ const getInitials = (name: string) => {
             </div>
 
             <!-- 最近提交 -->
-            <div v-if="loading.userDetail" class="flex justify-center py-4">
+            <div v-if="loading.userDetail || loadingSubmissions" class="flex justify-center py-4">
               <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
             </div>
-            <div v-else-if="error.userDetail" class="text-red-500 text-center text-sm py-2">
-              {{ error.userDetail }}
+            <div v-else-if="error.userDetail || submissionError" class="text-red-500 text-center text-sm py-2">
+              {{ error.userDetail || submissionError }}
             </div>
-            <div v-else-if="userInfo?.recentSubmissions && userInfo.recentSubmissions.length > 0" class="mt-2">
+            <div v-else-if="userSubmissions.length > 0" class="mt-2">
               <RecentSubmissions :maxCount="3" :showQuestionLink="true" :showViewAllButton="true" 
-                title="最近提交" :submissions="userInfo.recentSubmissions" />
+                title="最近提交" :submissions="userSubmissions" />
             </div>
             <div v-else class="mt-2 text-center py-3 text-neutral-500 text-sm">
               暂无提交记录
@@ -306,7 +379,8 @@ const getInitials = (name: string) => {
                   'text-yellow-600 dark:text-yellow-400': problem.difficulty === '中等',
                   'text-red-600 dark:text-red-400': problem.difficulty === '困难'
                 }">{{ problem.difficulty }}</span>
-                <span class="text-neutral-600 dark:text-neutral-400">{{ problem.acceptance }}</span>
+                <!-- 注释掉通过率显示，因为后端没有正确维护这个值 -->
+                <!-- <span class="text-neutral-600 dark:text-neutral-400">{{ problem.acceptance }}</span> -->
               </div>
             </div>
           </div>
@@ -349,7 +423,7 @@ const getInitials = (name: string) => {
                   :Glyph="contest.status === '即将开始' ? 'fluent:calendar-clock-20-filled' :
                     contest.status === '进行中' ? 'fluent:play-circle-20-filled' : 'fluent:checkmark-circle-20-filled'" />
               </div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-2">{{ contest.startTime }}</p>
+              <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-2">{{ formatDateTime(contest.startTime) }}</p>
             </div>
           </div>
         </div>

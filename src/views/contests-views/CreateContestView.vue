@@ -57,15 +57,9 @@ const durationOptions = [
 ]
 const visibilityOptions = [
   { value: 'public', label: '公开可见', icon: 'fluent:globe-20-filled' },
-  { value: 'team', label: '团队可见', icon: 'fluent:people-team-20-filled' },
   { value: 'private', label: '私有', icon: 'fluent:lock-closed-20-filled' }
 ]
 
-const availableTeams = ref([
-  { id: 1, name: '算法竞赛团队' },
-  { id: 2, name: '程序设计俱乐部' },
-  { id: 3, name: '新生训练营' }
-])
 
 // 替换静态题目为API获取的题目列表
 const availableProblems = ref<Question[]>([])
@@ -507,10 +501,11 @@ const applyProblemSelection = (problem: Question) => {
             </div>
 
             <!-- 团队选择 -->
+            <!--
             <div v-if="contestForm.visibility.type === 'team'" class="space-y-4">
               <label class="block text-sm font-medium">选择可见团队</label>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div v-for="team in availableTeams" 
+               <div v-for="team in availableTeams" 
                      :key="team.id"
                      @click="contestForm.visibility.teams.includes(team.id) 
                               ? removeTeam(team.id) 
@@ -531,7 +526,7 @@ const applyProblemSelection = (problem: Question) => {
                                 : 'text-neutral-500'" />
                 </div>
               </div>
-            </div>
+            </div>-->
 
           </div>
         </div>

@@ -7,6 +7,8 @@ import RecentSubmissions from "@/components/RecentSubmissions.vue";
 import HyperlinkButton from "@/components/HyperlinkButton.vue";
 import TokenItem from "@/components/TokenItem.vue";
 import { getQuestions, type Question } from "@/api/questionApi";
+import { getSubmissions } from "@/api/questionApi"; // 添加导入
+import { isLoggedIn } from '@/stores/userStore'; // 添加导入
 document.title = "Sora Online Judge • 问题";
 
 const router = useRouter();
@@ -16,6 +18,21 @@ const questions = ref<Question[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const totalCount = ref(0);
+
+// 添加提交记录状态
+interface UserSubmission {
+  id: string;
+  questionId: string;
+  status: string;
+  language: string;
+  submitTime: string;
+  time: string;
+  memory: string;
+}
+
+const userSubmissions = ref<UserSubmission[]>([]);
+const loadingSubmissions = ref(false);
+const submissionError = ref<string | null>(null);
 
 // 查询参数
 const queryParams = reactive({
@@ -85,6 +102,7 @@ const totalPages = computed(() => Math.ceil(totalCount.value / queryParams.pageS
 // 组件挂载时加载数据
 onMounted(() => {
   loadQuestions();
+  loadUserSubmissions(); // 添加加载用户提交记录
 });
 
 // 获取难度对应的图标
@@ -102,6 +120,41 @@ function getDifficultyIcon(difficulty: string): string {
 function navigate(questionId: string) {
   window.scrollTo(0, 0);
   router.push(`/questions/${questionId}`);
+}
+
+// 添加获取用户提交记录的函数
+async function loadUserSubmissions() {
+  if (!isLoggedIn.value) return;
+  
+  loadingSubmissions.value = true;
+  submissionError.value = null;
+  
+  try {
+    const response = await getSubmissions({
+      pageIndex: 1,
+      pageSize: 5,
+      getAllUsers: false
+    });
+    
+    if (response.success && response.data) {
+      userSubmissions.value = response.data.map(item => ({
+        id: item.id,
+        questionId: item.questionId,
+        status: item.status,
+        language: item.language,
+        submitTime: item.submitTime,
+        time: `${item.timeUsed}ms`,
+        memory: `${(item.memoryUsed / 1024 / 1024).toFixed(2)}MB`,
+      }));
+    } else {
+      submissionError.value = response.message || "获取提交记录失败";
+    }
+  } catch (error) {
+    console.error("加载提交记录失败:", error);
+    submissionError.value = "加载提交记录失败";
+  } finally {
+    loadingSubmissions.value = false;
+  }
 }
 </script>
 
@@ -225,7 +278,15 @@ function navigate(questionId: string) {
       
       <!-- 右侧最近提交 -->
       <div class="lg:col-span-1">
-        <RecentSubmissions :showViewAllButton="true" :submissions="[]" title="最近提交"/>
+        <div v-if="loadingSubmissions" class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-4">
+          <div class="flex justify-center py-6">
+            <fluent-progress-ring></fluent-progress-ring>
+          </div>
+        </div>
+        <div v-else-if="submissionError" class="border-1 border-neutral-300 dark:border-neutral-700 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-4">
+          <div class="text-red-500 text-center py-4">{{ submissionError }}</div>
+        </div>
+        <RecentSubmissions v-else :showViewAllButton="true" :submissions="userSubmissions" title="我的提交" :showQuestionLink="true"/>
       </div>
     </div>
   </div>

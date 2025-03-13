@@ -61,7 +61,7 @@ const userInfo = ref({
   rating: 0,
   rank: 0,
   joinDate: "",
-  stats: {
+  statistics: {
     solved: 0,
     attempted: 0,
     submissions: 0,
@@ -94,7 +94,7 @@ const fetchUserProfile = async (userId) => {
         rating: response.data.rating || 0,
         rank: response.data.ranking || 0,
         joinDate: response.data.joinDate || "",
-        stats: response.data.stats || {
+        statistics: response.data.statistics || {
           solved: 0,
           attempted: 0,
           submissions: 0,
@@ -179,19 +179,19 @@ onMounted(async () => {
           
           <div class="flex-grow grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="flex flex-col items-center p-4 rounded-lg bg-neutral-100 dark:bg-neutral-700">
-              <span class="text-2xl font-bold">{{ userInfo.stats.solved }}</span>
+              <span class="text-2xl font-bold">{{ userInfo.statistics.solved }}</span>
               <span class="text-sm text-neutral-600 dark:text-neutral-400">已解决</span>
             </div>
             <div class="flex flex-col items-center p-4 rounded-lg bg-neutral-100 dark:bg-neutral-700">
-              <span class="text-2xl font-bold">{{ userInfo.stats.attempted }}</span>
+              <span class="text-2xl font-bold">{{ userInfo.statistics.attempted }}</span>
               <span class="text-sm text-neutral-600 dark:text-neutral-400">尝试过</span>
             </div>
             <div class="flex flex-col items-center p-4 rounded-lg bg-neutral-100 dark:bg-neutral-700">
-              <span class="text-2xl font-bold">{{ userInfo.stats.submissions }}</span>
+              <span class="text-2xl font-bold">{{ userInfo.statistics.submissions }}</span>
               <span class="text-sm text-neutral-600 dark:text-neutral-400">总提交</span>
             </div>
             <div class="flex flex-col items-center p-4 rounded-lg bg-neutral-100 dark:bg-neutral-700">
-              <span class="text-2xl font-bold">{{ userInfo.stats.acceptanceRate }}</span>
+              <span class="text-2xl font-bold">{{ userInfo.statistics.acceptanceRate }}</span>
               <span class="text-sm text-neutral-600 dark:text-neutral-400">通过率</span>
             </div>
           </div>

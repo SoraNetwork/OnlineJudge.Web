@@ -58,11 +58,11 @@ const loadContestDetail = async () => {
               problem.title = questionResponse.data.title || problem.title
               problem.difficulty = questionResponse.data.difficulty || problem.difficulty
               
-              // 如果API返回了接受率信息，更新它
-              if (questionResponse.data.acceptCount !== undefined && questionResponse.data.submitCount !== undefined && questionResponse.data.submitCount > 0) {
-                const acceptanceRate = (questionResponse.data.acceptCount / questionResponse.data.submitCount * 100).toFixed(1)
-                problem.acceptance = `${acceptanceRate}%`
-              }
+              // 注释掉接受率相关代码，因为后端没有正确维护这个值
+              // if (questionResponse.data.acceptCount !== undefined && questionResponse.data.submitCount !== undefined && questionResponse.data.submitCount > 0) {
+              //   const acceptanceRate = (questionResponse.data.acceptCount / questionResponse.data.submitCount * 100).toFixed(1)
+              //   problem.acceptance = `${acceptanceRate}%`
+              // }
             }
             return problem
           } catch (err) {
