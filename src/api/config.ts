@@ -3,7 +3,7 @@
  */
 
 // API服务器基础URL
-export const API_BASE_URL = 'http://127.0.0.1:5148';
+export const API_BASE_URL = 'https://api.oj.xingsora.cn';
 
 // API路径前缀
 export const API_PREFIX = '/api';
