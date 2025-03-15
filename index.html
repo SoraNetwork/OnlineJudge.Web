@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoraOnlineJudge - 小空OJ</title>
   </head>
+  <script>
+  (function(){
+    var redirect = sessionStorage.redirect;
+    delete sessionStorage.redirect;
+    if (redirect && redirect != location.href) {
+      history.replaceState(null, null, redirect);
+    }
+  })();
+  </script>
   <body class="dark:text-neutral-200 text-neutral-900">
     <div style="width: 100%; height: 100%;" id="app"></div>
     <script type="module" src="./src/main.ts"></script>
