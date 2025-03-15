@@ -38,6 +38,10 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: write  # Required for actions/upload-pages-artifact
+      pages: write     # Required for actions/deploy-pages
+      id-token: write
     runs-on: ubuntu-latest
     needs: build
     steps:
