@@ -279,10 +279,12 @@ const handleBack = () => {
               <Icon icon="fluent:save-20-filled" class="w-5 h-5 mr-2"/>
               保存
             </fluent-button>
+            <!--
             <fluent-button v-else appearance="outline" @click="handleEdit">
               <Icon icon="fluent:edit-20-filled" class="w-5 h-5 mr-2"/>
               编辑
             </fluent-button>
+            -->
             <fluent-button appearance="accent" @click="handleSubmit">
               <Icon icon="fluent:send-20-filled" class="w-5 h-5 mr-2"/>
               提交

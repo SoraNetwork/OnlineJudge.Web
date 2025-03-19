@@ -378,7 +378,7 @@ const formatStatusDisplay = (statusValue: string): string => {
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 dark:text-neutral-400">
-                {{ submission.timeUsed }}ms / {{ formatMemory(submission.memoryUsed) }}
+                {{ submission.timeUsed }}ms <!--/ {{ formatMemory(submission.memoryUsed) }}-->
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 dark:text-neutral-400">
                 {{ formatDateTime(submission.submitTime) }}
@@ -418,7 +418,7 @@ const formatStatusDisplay = (statusValue: string): string => {
               </div>
 
               <div class="text-neutral-500 dark:text-neutral-400">
-                {{ submission.timeUsed }}ms / {{ formatMemory(submission.memoryUsed) }}
+                {{ submission.timeUsed }}ms / <!-- {{ formatMemory(submission.memoryUsed) }} -->
               </div>
 
               <div class="text-neutral-500 dark:text-neutral-400">
@@ -530,7 +530,7 @@ const formatStatusDisplay = (statusValue: string): string => {
                         </div>
                       </td>
                       <td class="px-4 py-2 whitespace-nowrap">{{ result.timeUsed }}ms</td>
-                      <td class="px-4 py-2 whitespace-nowrap">{{ formatMemory(result.memoryUsed) }}</td>
+                    <!--  <td class="px-4 py-2 whitespace-nowrap">{{ formatMemory(result.memoryUsed) }}</td> -->
                       <td class="px-4 py-2 whitespace-nowrap">{{ result.score }}</td>
                     </tr>
                   </tbody>

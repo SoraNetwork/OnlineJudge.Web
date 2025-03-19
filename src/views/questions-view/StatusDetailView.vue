@@ -241,8 +241,8 @@ onMounted(async () => {
                   <div class="text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-4">
                     <span v-if="!isPending(testCase.status)" :class="getScoreClass(testCase.score)">得分  {{
                       testCase.score }}</span>
-                    <span>耗时: {{ testCase.time }}</span>
-                    <span>内存: {{ testCase.memory }}</span>
+                    <span v-if="testCase.time!=0">耗时: {{ testCase.time }}</span>
+                    <span v-if="testCase.memory!=0">内存: {{ testCase.memory }}</span>
                   </div>
                 </div>
                 <div v-if="testCase.status !== 'Accepted'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -308,10 +308,10 @@ onMounted(async () => {
                 </div>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-neutral-600 dark:text-neutral-400">耗时</span>
+                <span v-if="submission.time!=0" class="text-neutral-600 dark:text-neutral-400">耗时</span>
                 <span>{{ submission.time }}</span>
               </div>
-              <div class="flex justify-between items-center">
+              <div v-if="submission.memory!=0" class="flex justify-between items-center">
                 <span class="text-neutral-600 dark:text-neutral-400">内存</span>
                 <span>{{ submission.memory }}</span>
               </div>
